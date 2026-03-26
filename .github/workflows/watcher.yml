@@ -2,8 +2,8 @@ name: CEJ Watcher
 
 on:
   schedule:
-    # Runs every 5 minutes
-    - cron: '*/5 * * * *'
+    # Runs every 30 minutes
+    - cron: '*/30 * * * *'
   # Allow manual triggering
   workflow_dispatch:
   push:

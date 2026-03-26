@@ -108,9 +108,8 @@ def read_non_negative_int_env(name, default):
         return default
 
 
-RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 2)
-SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 120)
-
+RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
+SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
 
 def load_seen_ids():
     if os.path.exists(SEEN_IDS_FILE):
@@ -142,7 +141,7 @@ def send_discord_notification(listing):
     address = listing.get("location", {}).get("formatted", "Unknown Address")
     available_from = listing.get("availableFrom", "Unknown Date")
     status = listing.get("status", "unknown")
-    link = f"https://udlejning.cej.dk/find-bolig/{listing.get('id', '')}"
+    link = f"https://udlejning.cej.dk/boliger/{listing.get('id', '')}"
     mention, allowed_mentions = build_discord_mention()
     mention_prefix = f"{mention} " if mention else ""
 
