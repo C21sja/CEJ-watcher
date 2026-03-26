@@ -1,0 +1,98 @@
+name: CEJ Watcher
+
+on:
+  schedule:
+    # Runs every 5 minutes
+    - cron: '*/5 * * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Verify watcher syntax
+        run: |
+          python -m py_compile watcher.py
+
+  run-watcher:
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run watcher script
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          python watcher.py
+
+      - name: Commit state changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add seen_ids.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seen IDs" && git push)
+
+  notify-failure:
+    if: ${{ always() && (needs.verify.result == 'failure' || needs.run-watcher.result == 'failure') && secrets.DISCORD_WEBHOOK_URL != '' }}
+    needs: [verify, run-watcher]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Alert Discord on workflow failure
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          GITHUB_SERVER_URL: ${{ github.server_url }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          VERIFY_RESULT: ${{ needs.verify.result }}
+          WATCHER_RESULT: ${{ needs.run-watcher.result }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          run_url = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}"
+          payload = {
+              "content": (
+                  f":x: CEJ watcher workflow failed in `{os.environ['GITHUB_REPOSITORY']}` "
+                  f"on `{os.environ['GITHUB_REF_NAME']}`.\n"
+                  f"verify={os.environ['VERIFY_RESULT']}, run-watcher={os.environ['WATCHER_RESULT']}\n"
+                  f"Run details: {run_url}"
+              )
+          }
+
+          req = urllib.request.Request(
+              os.environ["DISCORD_WEBHOOK_URL"],
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+          )
+          urllib.request.urlopen(req, timeout=30).read()
+          PY
