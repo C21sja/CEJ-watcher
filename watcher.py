@@ -165,7 +165,7 @@ def run_check():
     apartments = fetch_apartments()
 
     print(f"Found {len(apartments)} total apartments in the response.")
-    new_found = False
+    sent_notifications = 0
     notification_failures = 0
 
     for apt in apartments:
@@ -180,16 +180,16 @@ def run_check():
             print(f"New apartment found: {apt.get('name')} ({apt_id})")
             if send_discord_notification(apt):
                 seen_ids.add(apt_id)
-                new_found = True
+                # Persist each successful notification to minimize duplicate alerts
+                # if a later apartment fails in the same run.
+                save_seen_ids(seen_ids)
+                sent_notifications += 1
             else:
                 notification_failures += 1
 
     if notification_failures:
         raise WatcherError(f"Failed to send {notification_failures} Discord notification(s).")
-
-    if new_found:
-        save_seen_ids(seen_ids)
-    else:
+    if sent_notifications == 0:
         print("No new available apartments found in this check.")
 
 
