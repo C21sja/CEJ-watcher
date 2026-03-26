@@ -48,6 +48,7 @@ jobs:
       - name: Run watcher script
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MENTION_EVERYONE: ${{ vars.DISCORD_MENTION_EVERYONE || 'true' }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION || '@user' }}
           DISCORD_MENTION_USER_ID: ${{ vars.DISCORD_MENTION_USER_ID }}
         run: |
@@ -71,6 +72,7 @@ jobs:
       - name: Alert Discord on workflow failure
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_MENTION_EVERYONE: ${{ vars.DISCORD_MENTION_EVERYONE || 'true' }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION || '@user' }}
           DISCORD_MENTION_USER_ID: ${{ vars.DISCORD_MENTION_USER_ID }}
           GITHUB_SERVER_URL: ${{ github.server_url }}
@@ -83,6 +85,7 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import re
           import time
           import urllib.request
           import urllib.error
@@ -92,12 +95,26 @@ jobs:
               print("DISCORD_WEBHOOK_URL is not set; skipping failure notification.")
               raise SystemExit(0)
 
-          mention_user_id = os.environ.get("DISCORD_MENTION_USER_ID")
+          mention_everyone = (os.environ.get("DISCORD_MENTION_EVERYONE", "true") or "").strip().lower() in {"1", "true", "yes", "on"}
+          mention_user_id = (os.environ.get("DISCORD_MENTION_USER_ID") or "").strip()
           mention_text = os.environ.get("DISCORD_MENTION") or "@user"
-          if mention_user_id:
-              mention_prefix = f"<@{mention_user_id}> "
-              allowed_mentions = {"users": [mention_user_id]}
+          if mention_everyone:
+              mention_prefix = "@everyone "
+              allowed_mentions = {"parse": ["everyone"]}
           else:
+              if not mention_user_id:
+                  match = re.search(r"\d{6,}", mention_text)
+                  if match:
+                      mention_user_id = match.group(0)
+
+              if mention_user_id and not mention_user_id.isdigit():
+                  match = re.search(r"\d{6,}", mention_user_id)
+                  mention_user_id = match.group(0) if match else ""
+
+          if not mention_everyone and mention_user_id:
+              mention_prefix = f"<@{mention_user_id}> "
+              allowed_mentions = {"parse": ["users"], "users": [mention_user_id]}
+          elif not mention_everyone:
               mention_prefix = f"{mention_text} " if mention_text else ""
               allowed_mentions = None
 

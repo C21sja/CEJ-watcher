@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import sys
 import time
 import urllib.error
@@ -17,6 +18,7 @@ SEEN_IDS_FILE = "seen_ids.json"
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
 DISCORD_MENTION = os.environ.get("DISCORD_MENTION", "@user")
 DISCORD_MENTION_USER_ID = os.environ.get("DISCORD_MENTION_USER_ID")
+DISCORD_MENTION_EVERYONE = os.environ.get("DISCORD_MENTION_EVERYONE", "true")
 
 
 class WatcherError(Exception):
@@ -62,10 +64,32 @@ def post_discord_payload(payload, max_attempts=5):
     return False
 
 
+def normalize_discord_user_id(raw_value):
+    if not raw_value:
+        return None
+
+    cleaned = raw_value.strip()
+    if cleaned.isdigit():
+        return cleaned
+
+    match = re.search(r"\d{6,}", cleaned)
+    if match:
+        return match.group(0)
+    return None
+
+
+def is_truthy(value):
+    return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
 def build_discord_mention():
-    if DISCORD_MENTION_USER_ID:
-        mention = f"<@{DISCORD_MENTION_USER_ID}>"
-        return mention, {"users": [DISCORD_MENTION_USER_ID]}
+    if is_truthy(DISCORD_MENTION_EVERYONE):
+        return "@everyone", {"parse": ["everyone"]}
+
+    user_id = normalize_discord_user_id(DISCORD_MENTION_USER_ID)
+    if user_id:
+        mention = f"<@{user_id}>"
+        return mention, {"parse": ["users"], "users": [user_id]}
     return DISCORD_MENTION, None
 
 
