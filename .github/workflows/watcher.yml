@@ -82,7 +82,9 @@ jobs:
           python - <<'PY'
           import json
           import os
+          import time
           import urllib.request
+          import urllib.error
 
           webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
           if not webhook_url:
@@ -115,5 +117,29 @@ jobs:
               data=json.dumps(payload).encode("utf-8"),
               headers={"Content-Type": "application/json"},
           )
-          urllib.request.urlopen(req, timeout=30).read()
+
+          for attempt in range(1, 4):
+              try:
+                  urllib.request.urlopen(req, timeout=30).read()
+                  print("Sent Discord failure notification.")
+                  break
+              except urllib.error.HTTPError as e:
+                  if e.code == 429 and attempt < 3:
+                      retry_after = 2.0
+                      try:
+                          body = e.read().decode("utf-8")
+                          details = json.loads(body)
+                          retry_after = float(details.get("retry_after", retry_after))
+                      except Exception:
+                          pass
+                      sleep_for = max(0.5, retry_after) + 0.25
+                      print(f"Failure alert rate-limited, retrying in {sleep_for:.2f}s.")
+                      time.sleep(sleep_for)
+                      continue
+
+                  print(f"Discord failure notification skipped due to HTTP error: {e}")
+                  break
+              except Exception as e:
+                  print(f"Discord failure notification skipped due to error: {e}")
+                  break
           PY

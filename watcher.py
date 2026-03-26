@@ -23,6 +23,45 @@ class WatcherError(Exception):
     """Raised when the watcher cannot complete due to break conditions."""
 
 
+def post_discord_payload(payload, max_attempts=5):
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        WEBHOOK_URL,
+        data=data,
+        headers={"Content-Type": "application/json", "User-Agent": HEADERS["User-Agent"]},
+    )
+
+    for attempt in range(1, max_attempts + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                if response.status in [200, 204]:
+                    return True
+                print(f"Failed to send Discord payload. Status: {response.status}")
+                return False
+        except urllib.error.HTTPError as e:
+            if e.code == 429 and attempt < max_attempts:
+                retry_after = 2.0
+                try:
+                    body = e.read().decode("utf-8")
+                    details = json.loads(body)
+                    retry_after = float(details.get("retry_after", retry_after))
+                except Exception:
+                    pass
+
+                # Small buffer to avoid immediate repeat rate-limits.
+                sleep_for = max(0.5, retry_after) + 0.25
+                print(f"Discord rate-limited (attempt {attempt}/{max_attempts}), retrying in {sleep_for:.2f}s.")
+                time.sleep(sleep_for)
+                continue
+
+            print(f"HTTP Error sending to Discord: {e}")
+            return False
+        except urllib.error.URLError as e:
+            print(f"URL Error sending to Discord: {e}")
+            return False
+    return False
+
+
 def build_discord_mention():
     if DISCORD_MENTION_USER_ID:
         mention = f"<@{DISCORD_MENTION_USER_ID}>"
@@ -103,23 +142,10 @@ def send_discord_notification(listing):
     if allowed_mentions:
         message["allowed_mentions"] = allowed_mentions
 
-    data = json.dumps(message).encode("utf-8")
-    req = urllib.request.Request(
-        WEBHOOK_URL,
-        data=data,
-        headers={"Content-Type": "application/json", "User-Agent": HEADERS["User-Agent"]},
-    )
-
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            if response.status in [200, 204]:
-                print(f"Successfully sent Discord notification for {name}")
-                return True
-            print(f"Failed to send Discord notification. Status: {response.status}")
-            return False
-    except urllib.error.URLError as e:
-        print(f"URL Error sending to Discord: {e}")
-        return False
+    if post_discord_payload(message):
+        print(f"Successfully sent Discord notification for {name}")
+        return True
+    return False
 
 
 def extract_json_from_remix(raw_data):
