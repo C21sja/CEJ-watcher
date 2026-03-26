@@ -15,10 +15,19 @@ HEADERS = {
 }
 SEEN_IDS_FILE = "seen_ids.json"
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+DISCORD_MENTION = os.environ.get("DISCORD_MENTION", "@user")
+DISCORD_MENTION_USER_ID = os.environ.get("DISCORD_MENTION_USER_ID")
 
 
 class WatcherError(Exception):
     """Raised when the watcher cannot complete due to break conditions."""
+
+
+def build_discord_mention():
+    if DISCORD_MENTION_USER_ID:
+        mention = f"<@{DISCORD_MENTION_USER_ID}>"
+        return mention, {"users": [DISCORD_MENTION_USER_ID]}
+    return DISCORD_MENTION, None
 
 
 def read_non_negative_int_env(name, default):
@@ -69,16 +78,20 @@ def send_discord_notification(listing):
     price = listing.get("price", {}).get("amount", "Unknown Price")
     address = listing.get("location", {}).get("formatted", "Unknown Address")
     available_from = listing.get("availableFrom", "Unknown Date")
+    status = listing.get("status", "unknown")
     link = f"https://udlejning.cej.dk/find-bolig/{listing.get('id', '')}"
+    mention, allowed_mentions = build_discord_mention()
+    mention_prefix = f"{mention} " if mention else ""
 
     message = {
-        "content": ":rotating_light: **New Apartment Alert!** :rotating_light:",
+        "content": f"{mention_prefix}:rotating_light: **New Apartment Alert!** :rotating_light:",
         "embeds": [
             {
                 "title": name,
                 "url": link,
                 "color": 3447003,  # Blue
                 "fields": [
+                    {"name": "Status", "value": str(status), "inline": True},
                     {"name": "Price", "value": f"{price} kr/month", "inline": True},
                     {"name": "Address", "value": address, "inline": True},
                     {"name": "Available From", "value": available_from, "inline": True},
@@ -87,6 +100,8 @@ def send_discord_notification(listing):
             }
         ],
     }
+    if allowed_mentions:
+        message["allowed_mentions"] = allowed_mentions
 
     data = json.dumps(message).encode("utf-8")
     req = urllib.request.Request(
@@ -175,9 +190,9 @@ def run_check():
         apt_id = apt.get("id")
         status = apt.get("status")
 
-        # Only notify for 'available' apartments that we haven't seen yet
-        if apt_id and status == "available" and apt_id not in seen_ids:
-            print(f"New apartment found: {apt.get('name')} ({apt_id})")
+        # Notify on any unseen listing status.
+        if apt_id and apt_id not in seen_ids:
+            print(f"New apartment found: {apt.get('name')} ({apt_id}) status={status}")
             if send_discord_notification(apt):
                 seen_ids.add(apt_id)
                 # Persist each successful notification to minimize duplicate alerts
@@ -190,7 +205,7 @@ def run_check():
     if notification_failures:
         raise WatcherError(f"Failed to send {notification_failures} Discord notification(s).")
     if sent_notifications == 0:
-        print("No new available apartments found in this check.")
+        print("No new unseen apartments found in this check.")
 
 
 def main():
