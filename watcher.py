@@ -111,23 +111,28 @@ def read_non_negative_int_env(name, default):
 RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
 
-def load_seen_ids():
+def load_seen_states():
     if os.path.exists(SEEN_IDS_FILE):
         try:
             with open(SEEN_IDS_FILE, "r", encoding="utf-8") as f:
-                return set(json.load(f))
+                data = json.load(f)
+                if isinstance(data, list):
+                    # Legacy format (list of IDs), assume unknown status to prevent spam migration
+                    return {item: "unknown" for item in data}
+                if isinstance(data, dict):
+                    return data
         except Exception as e:
-            print(f"Error loading seen IDs: {e}")
-            return set()
-    return set()
+            print(f"Error loading seen states: {e}")
+            return {}
+    return {}
 
 
-def save_seen_ids(seen_ids):
+def save_seen_states(states):
     try:
         with open(SEEN_IDS_FILE, "w", encoding="utf-8") as f:
-            json.dump(list(seen_ids), f, indent=2)
+            json.dump(states, f, indent=2)
     except Exception as e:
-        print(f"Error saving seen IDs: {e}")
+        print(f"Error saving seen states: {e}")
 
 
 def send_discord_notification(listing):
@@ -225,7 +230,7 @@ def fetch_apartments():
 
 
 def run_check():
-    seen_ids = load_seen_ids()
+    seen_states = load_seen_states()
     apartments = fetch_apartments()
 
     print(f"Found {len(apartments)} total apartments in the response.")
@@ -238,15 +243,26 @@ def run_check():
 
         apt_id = apt.get("id")
         status = apt.get("status")
+        
+        if not apt_id:
+            continue
 
-        # Notify on any unseen listing status.
-        if apt_id and apt_id not in seen_ids:
-            print(f"New apartment found: {apt.get('name')} ({apt_id}) status={status}")
+        previous_status = seen_states.get(apt_id)
+
+        # Upgrade legacy status silently without sending a notification
+        if previous_status == "unknown":
+            seen_states[apt_id] = status
+            save_seen_states(seen_states)
+            continue
+
+        # Notify if completely new OR if the status changed (e.g. reserved -> available)
+        if previous_status is None or previous_status != status:
+            reason = "New apartment found" if previous_status is None else f"Status changed ({previous_status} -> {status})"
+            print(f"{reason}: {apt.get('name')} ({apt_id})")
+            
             if send_discord_notification(apt):
-                seen_ids.add(apt_id)
-                # Persist each successful notification to minimize duplicate alerts
-                # if a later apartment fails in the same run.
-                save_seen_ids(seen_ids)
+                seen_states[apt_id] = status
+                save_seen_states(seen_states)
                 sent_notifications += 1
             else:
                 notification_failures += 1
