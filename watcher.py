@@ -146,7 +146,9 @@ def send_discord_notification(listing):
     address = listing.get("location", {}).get("formatted", "Unknown Address")
     available_from = listing.get("availableFrom", "Unknown Date")
     status = listing.get("status", "unknown")
-    link = f"https://udlejning.cej.dk/boliger/{listing.get('id', '')}"
+    link = listing.get("url") or f"https://udlejning.cej.dk/boliger/{listing.get('id', '')}"
+    source = listing.get("source", "CEJ")
+    
     mention, allowed_mentions = build_discord_mention()
     mention_prefix = f"{mention} " if mention else ""
 
@@ -163,7 +165,7 @@ def send_discord_notification(listing):
                     {"name": "Address", "value": address, "inline": True},
                     {"name": "Available From", "value": available_from, "inline": True},
                 ],
-                "footer": {"text": f"CEJ Udlejning Watcher - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
+                "footer": {"text": f"{source} Udlejning Watcher - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
             }
         ],
     }
@@ -201,7 +203,7 @@ def extract_json_from_remix(raw_data):
     return None
 
 
-def fetch_apartments():
+def fetch_cej_apartments():
     print(f"[{datetime.now().isoformat()}] Fetching CEJ API...")
     req = urllib.request.Request(API_URL, headers=HEADERS)
     try:
@@ -227,6 +229,78 @@ def fetch_apartments():
         raise WatcherError("CEJ API response missing 'items' list.")
 
     return items
+
+
+def fetch_city_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching City Apartment...")
+    req = urllib.request.Request(
+        "https://cityapartment.dk/da/lejeboliger-koebenhavn/",
+        headers={
+            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
+            "Accept": "text/html,application/xhtml+xml,application/xml"
+        }
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=30) as response:
+            if response.status != 200:
+                print(f"City Apartment API returned HTTP {response.status}")
+                return []
+            html = response.read().decode("utf-8")
+    except Exception as e:
+        print(f"Error fetching City Apartment: {e}")
+        return []
+
+    apartments = []
+    articles = re.findall(r'<article[^>]*>(.*?)</article>', html, re.DOTALL | re.IGNORECASE)
+    
+    for article in articles:
+        title_match = re.search(r'<h[234][^>]*>(.*?)</h[234]>', article, re.DOTALL | re.IGNORECASE)
+        if not title_match:
+            continue
+        title = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
+        
+        if "Lejeboliger" in title or "Søgeresultater" in title:
+            continue
+
+        link_match = re.search(r'href=["\']([^"\']+)["\']', article, re.IGNORECASE)
+        link = link_match.group(1) if link_match else ""
+        
+        if not link or len(link) < 5 or not link.startswith("http"):
+            continue
+
+        text = re.sub(r'<[^>]+>', ' ', article)
+        text = re.sub(r'\s+', ' ', text).strip()
+        
+        price_match = re.search(r'([\d\.]+)\s*DK', text)
+        price = price_match.group(1).replace('.', '') if price_match else "Unknown"
+
+        apartments.append({
+            "id": link,
+            "status": "Available",
+            "name": title,
+            "price": {"amount": price},
+            "location": {"formatted": title},
+            "availableFrom": "See link for info",
+            "url": link,
+            "source": "City Apartment"
+        })
+        
+    return apartments
+
+
+def fetch_apartments():
+    all_items = []
+    
+    # CEJ properties
+    all_items.extend(fetch_cej_apartments())
+
+    # City Apartment properties
+    try:
+        all_items.extend(fetch_city_apartments())
+    except Exception as e:
+        print(f"Error parsing City Apartment listings: {e}")
+        
+    return all_items
 
 
 def run_check():
