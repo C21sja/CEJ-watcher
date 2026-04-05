@@ -262,10 +262,14 @@ def fetch_city_apartments():
         if "Lejeboliger" in title or "Søgeresultater" in title:
             continue
 
-        link_match = re.search(r'href=["\']([^"\']+)["\']', article, re.IGNORECASE)
-        link = link_match.group(1) if link_match else ""
+        hrefs = re.findall(r'href=["\']([^"\']+)["\']', article, re.IGNORECASE)
+        link = ""
+        for h in hrefs:
+            if h.startswith("http") and h != "#":
+                link = h
+                break
         
-        if not link or len(link) < 5 or not link.startswith("http"):
+        if not link:
             continue
 
         text = re.sub(r'<[^>]+>', ' ', article)
