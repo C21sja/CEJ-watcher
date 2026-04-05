@@ -275,6 +275,14 @@ def fetch_city_apartments():
         text = re.sub(r'<[^>]+>', ' ', article)
         text = re.sub(r'\s+', ' ', text).strip()
         
+        if "odense" in title.lower() or "odense" in text.lower():
+            continue
+        post_match = re.search(r'Post nr\. (\d{4})', text, re.IGNORECASE)
+        if post_match:
+            post_code = int(post_match.group(1))
+            if post_code < 1000 or post_code >= 4000:
+                continue
+        
         price_match = re.search(r'([\d\.]+)\s*DK', text)
         price = price_match.group(1).replace('.', '') if price_match else "Unknown"
 
