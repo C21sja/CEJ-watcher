@@ -9,6 +9,12 @@ from datetime import datetime
 
 # Configurations
 API_URL = "https://udlejning.cej.dk/find-bolig/overblik?collection=residences&monthlyPrice=0-50000&p=sj%C3%A6lland&_data=routes%2Fsearch%2Flayout"
+CAPITALBOLIG_API_URL = "https://capitalbolig.dk/wp-json/wp/v2/bolig?per_page=100&_fields=id,link,title"
+JULILIVING_PAGE_URL = "https://juliliving.dk/find-lejebolig/"
+JULILIVING_AJAX_FALLBACK_URL = "https://juliliving.dk/wp-admin/admin-ajax.php"
+CWOBEL_ISLANDS_BRYGGE_URL = "https://www.cwobel-ejendomme.dk/bolig/ledige-lejemaal/storkoebenhavn/islands-brygge/"
+PROPSTEP_SEARCH_URL = "https://app.propstep.com/api/search"
+SWEET_HOMES_LIST_URL = "https://sweet-homes.dk/lejebolig/"
 HEADERS = {
     "x-remix-response": "yes",
     "Accept": "*/*",
@@ -110,6 +116,29 @@ def read_non_negative_int_env(name, default):
 
 RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
+CEJ_MAX_PRICE = 50000
+CEJ_MIN_POSTCODE = 1000
+CEJ_MAX_POSTCODE = 3999
+CEJ_LOCATION_KEYWORDS = [
+    "københavn",
+    "frederiksberg",
+    "valby",
+    "amager",
+    "hvidovre",
+    "rødovre",
+    "brønshøj",
+    "vanløse",
+    "nørrebro",
+    "vesterbro",
+    "østerbro",
+    "islands brygge",
+]
+
+
+def safe_console_text(value):
+    text = str(value)
+    encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
+    return text.encode(encoding, errors="replace").decode(encoding, errors="replace")
 
 def load_seen_states():
     if os.path.exists(SEEN_IDS_FILE):
@@ -138,7 +167,9 @@ def save_seen_states(states):
 def send_discord_notification(listing):
     if not WEBHOOK_URL:
         print("Webhook URL not found. Skipping Discord notification.")
-        print(f"Found new listing: {listing.get('name')} - {listing.get('price', {}).get('amount')} kr.")
+        print(
+            f"Found new listing: {safe_console_text(listing.get('name'))} - {listing.get('price', {}).get('amount')} kr."
+        )
         return False
 
     name = listing.get("name", "Unknown Apartment")
@@ -173,7 +204,7 @@ def send_discord_notification(listing):
         message["allowed_mentions"] = allowed_mentions
 
     if post_discord_payload(message):
-        print(f"Successfully sent Discord notification for {name}")
+        print(f"Successfully sent Discord notification for {safe_console_text(name)}")
         return True
     return False
 
@@ -201,6 +232,107 @@ def extract_json_from_remix(raw_data):
             except json.JSONDecodeError:
                 pass
     return None
+
+
+def fetch_url_text(url, accept="text/html,application/xhtml+xml,application/xml"):
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
+            "Accept": accept,
+        },
+    )
+    with urllib.request.urlopen(req, timeout=30) as response:
+        if response.status != 200:
+            raise WatcherError(f"Unexpected HTTP status {response.status} for {url}")
+        return response.read().decode("utf-8", errors="replace")
+
+
+def fetch_json(url):
+    body = fetch_url_text(url, accept="application/json,text/javascript,*/*")
+    return json.loads(body)
+
+
+def post_json(url, payload):
+    data = json.dumps(payload).encode("utf-8")
+    req = urllib.request.Request(
+        url,
+        data=data,
+        method="POST",
+        headers={
+            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
+            "Accept": "application/json,text/javascript,*/*",
+            "Content-Type": "application/json",
+        },
+    )
+    with urllib.request.urlopen(req, timeout=30) as response:
+        if response.status != 200:
+            raise WatcherError(f"Unexpected HTTP status {response.status} for {url}")
+        return json.loads(response.read().decode("utf-8", errors="replace"))
+
+
+def strip_html_tags(value):
+    if value is None:
+        return ""
+    text = re.sub(r"<[^>]+>", " ", str(value))
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def extract_price_amount(raw_value):
+    if raw_value is None:
+        return None
+
+    if isinstance(raw_value, (int, float)):
+        return int(raw_value)
+
+    text = str(raw_value)
+    match = re.search(r"(\d[\d\.\s,]*)", text)
+    if not match:
+        return None
+
+    digits = re.sub(r"\D", "", match.group(1))
+    if not digits:
+        return None
+
+    try:
+        return int(digits)
+    except ValueError:
+        return None
+
+
+def extract_postal_code(text):
+    if not text:
+        return None
+
+    match = re.search(r"\b(\d{4})\b", str(text))
+    if not match:
+        return None
+    return int(match.group(1))
+
+
+def matches_cej_location_and_price(location_text, price_amount):
+    if price_amount is not None and price_amount > CEJ_MAX_PRICE:
+        return False
+
+    normalized = str(location_text or "").strip().lower()
+    post_code = extract_postal_code(normalized)
+    if post_code is not None:
+        return CEJ_MIN_POSTCODE <= post_code <= CEJ_MAX_POSTCODE
+
+    return any(keyword in normalized for keyword in CEJ_LOCATION_KEYWORDS)
+
+
+def is_capital_target_location(location_text):
+    normalized = str(location_text or "").lower()
+    return "københavn v" in normalized or "frederiksberg" in normalized
+
+
+def is_juliliving_target_location(location_text):
+    return "københavn k" in str(location_text or "").lower()
+
+
+def is_cwobel_target_location(location_text):
+    return "islands brygge" in str(location_text or "").lower()
 
 
 def fetch_cej_apartments():
@@ -300,6 +432,301 @@ def fetch_city_apartments():
     return apartments
 
 
+def fetch_capitalbolig_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching Capital Bolig...")
+    apartments = []
+    try:
+        items = fetch_json(CAPITALBOLIG_API_URL)
+    except Exception as e:
+        print(f"Error fetching Capital Bolig: {e}")
+        return apartments
+
+    if not isinstance(items, list):
+        return apartments
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+
+        listing_id = item.get("id")
+        link = item.get("link")
+        title = strip_html_tags((item.get("title") or {}).get("rendered"))
+
+        if not listing_id or not link or not title:
+            continue
+        if not is_capital_target_location(title):
+            continue
+
+        apartments.append(
+            {
+                "id": f"capital:{listing_id}",
+                "status": "Available",
+                "name": title,
+                "price": {"amount": "Unknown"},
+                "location": {"formatted": title},
+                "availableFrom": "See link for info",
+                "url": link,
+                "source": "Capital Bolig",
+            }
+        )
+
+    return apartments
+
+
+def fetch_juliliving_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching Juli Living...")
+    apartments = []
+
+    try:
+        page_html = fetch_url_text(JULILIVING_PAGE_URL)
+    except Exception as e:
+        print(f"Error fetching Juli Living page: {e}")
+        return apartments
+
+    ajax_url = JULILIVING_AJAX_FALLBACK_URL
+    data_match = re.search(r"var\s+jlet_data\s*=\s*(\{.*?\});", page_html, re.DOTALL)
+    if data_match:
+        try:
+            config = json.loads(data_match.group(1).replace("\\/", "/"))
+            ajax_url = config.get("ajaxUrl") or ajax_url
+        except json.JSONDecodeError:
+            pass
+
+    units_url = f"{ajax_url}?action=jlet_units&locale=da"
+    try:
+        payload = fetch_json(units_url)
+    except Exception as e:
+        print(f"Error fetching Juli Living units feed: {e}")
+        return apartments
+
+    units = ((payload.get("data") or {}).get("units")) if isinstance(payload, dict) else None
+    if not isinstance(units, list):
+        return apartments
+
+    for unit in units:
+        if not isinstance(unit, dict):
+            continue
+
+        zip_city = unit.get("ZipCity") or ""
+        if not zip_city and unit.get("postcode"):
+            zip_city = f"{unit.get('postcode')} {unit.get('city', '')}".strip()
+
+        if not is_juliliving_target_location(zip_city):
+            continue
+
+        unit_id = unit.get("id") or unit.get("url")
+        if not unit_id:
+            continue
+
+        address = (unit.get("address") or "").strip()
+        location_text = ", ".join(part for part in [address, zip_city] if part)
+        price_amount = extract_price_amount(unit.get("RentPerMonth") or unit.get("price"))
+
+        apartments.append(
+            {
+                "id": f"juliliving:{unit_id}",
+                "status": unit.get("StatusText") or "Available",
+                "name": unit.get("Headline") or address or "Juli Living listing",
+                "price": {"amount": price_amount if price_amount is not None else "Unknown"},
+                "location": {"formatted": location_text or "København K"},
+                "availableFrom": unit.get("VacantDate") or "See link for info",
+                "url": unit.get("url") or JULILIVING_PAGE_URL,
+                "source": "Juli Living",
+            }
+        )
+
+    return apartments
+
+
+def fetch_cwobel_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching C.W. Obel...")
+    apartments = []
+
+    try:
+        html = fetch_url_text(CWOBEL_ISLANDS_BRYGGE_URL)
+    except Exception as e:
+        print(f"Error fetching C.W. Obel area page: {e}")
+        return apartments
+
+    row_re = re.compile(
+        r"<tr\s+data-estate-name=\"(?P<title>[^\"]+)\"[^>]*?"
+        r"onclick=\"window\.location\s*=\s*'(?P<link>https://www\.cwobel-ejendomme\.dk/bolig/lejemaal/(?P<slug>[^/]+)/)'\"[^>]*>"
+        r"(?P<body>.*?)</tr>",
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    for match in row_re.finditer(html):
+        title = strip_html_tags(match.group("title"))
+        body = match.group("body")
+        link = match.group("link")
+        slug = match.group("slug")
+
+        location_match = re.search(r"<td class=\"text-left[^\"]*\">(.*?)</td>", body, re.IGNORECASE | re.DOTALL)
+        location_text = strip_html_tags(location_match.group(1) if location_match else "")
+        if not is_cwobel_target_location(f"{title} {location_text}"):
+            continue
+
+        price_amount = None
+        price_sort_match = re.search(r"data-sort=\"(\d+)\"", body)
+        if price_sort_match:
+            price_amount = extract_price_amount(price_sort_match.group(1))
+
+        apartments.append(
+            {
+                "id": f"cwobel:{slug}",
+                "status": "Available",
+                "name": title,
+                "price": {"amount": price_amount if price_amount is not None else "Unknown"},
+                "location": {"formatted": location_text or "Islands Brygge"},
+                "availableFrom": "See link for info",
+                "url": link,
+                "source": "C.W. Obel",
+            }
+        )
+
+    return apartments
+
+
+def fetch_propstep_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching Propstep...")
+    apartments = []
+    page_size = 100
+    max_pages = 20
+
+    for page in range(1, max_pages + 1):
+        payload = {
+            "country": "DK",
+            "transactionType": 1,
+            "pageSize": page_size,
+            "page": page,
+            "waitingLists": False,
+            "isLocationEnabled": False,
+        }
+
+        try:
+            data = post_json(PROPSTEP_SEARCH_URL, payload)
+        except Exception as e:
+            print(f"Error fetching Propstep page {page}: {e}")
+            break
+
+        search_results = data.get("searchResults") if isinstance(data, dict) else None
+        if not isinstance(search_results, list) or not search_results:
+            break
+
+        for group in search_results:
+            if not isinstance(group, dict):
+                continue
+            properties = group.get("properties")
+            if not isinstance(properties, list):
+                continue
+
+            for prop in properties:
+                if not isinstance(prop, dict):
+                    continue
+
+                prop_id = prop.get("id") or prop.get("slug")
+                if not prop_id:
+                    continue
+
+                location = prop.get("location") or {}
+                address = location.get("address") or prop.get("name") or ""
+                city = location.get("city") or ""
+                postal_code = location.get("postalcode") or ""
+                location_text = ", ".join(part for part in [address, f"{postal_code} {city}".strip()] if part)
+
+                price_cents = (prop.get("transactionDetails") or {}).get("price")
+                price_amount = int(price_cents / 100) if isinstance(price_cents, (int, float)) else None
+
+                if not matches_cej_location_and_price(location_text, price_amount):
+                    continue
+
+                status_map = {1: "Available", 2: "Reserved", 3: "Rented"}
+                slug = prop.get("slug") or str(prop_id)
+
+                apartments.append(
+                    {
+                        "id": f"propstep:{prop_id}",
+                        "status": status_map.get(prop.get("status"), str(prop.get("status", "unknown"))),
+                        "name": prop.get("name") or address or "Propstep listing",
+                        "price": {"amount": price_amount if price_amount is not None else "Unknown"},
+                        "location": {"formatted": location_text or "Unknown location"},
+                        "availableFrom": (prop.get("transactionDetails") or {}).get("availableFrom") or "See link for info",
+                        "url": f"https://propstep.com/da-DK/soeg?slug={slug}",
+                        "source": "Propstep",
+                    }
+                )
+
+        total_properties = data.get("totalProperties") if isinstance(data, dict) else None
+        if isinstance(total_properties, int) and page * page_size >= total_properties:
+            break
+
+    return apartments
+
+
+def fetch_sweet_homes_apartments():
+    print(f"[{datetime.now().isoformat()}] Fetching Sweet Homes...")
+    apartments = []
+
+    try:
+        html = fetch_url_text(SWEET_HOMES_LIST_URL)
+    except Exception as e:
+        print(f"Error fetching Sweet Homes: {e}")
+        return apartments
+
+    card_re = re.compile(
+        r"<div data-elementor-type=\"loop-item\"[^>]*?post-(?P<post_id>\d+)\s+lejebolig[\s\S]*?"
+        r"<a[^>]+href=\"(?P<link>https://sweet-homes\.dk/lejebolig/[^\"]+)\"[^>]*>(?P<body>[\s\S]*?)</a>\s*</div>",
+        re.IGNORECASE,
+    )
+
+    for match in card_re.finditer(html):
+        post_id = match.group("post_id")
+        link = match.group("link")
+        body = match.group("body")
+
+        headings = re.findall(r"<h2[^>]*>(.*?)</h2>", body, flags=re.IGNORECASE | re.DOTALL)
+        heading_text = [strip_html_tags(value) for value in headings if strip_html_tags(value)]
+        address = heading_text[0] if heading_text else "Sweet Homes listing"
+        city = heading_text[1] if len(heading_text) > 1 else ""
+
+        custom_texts = [
+            strip_html_tags(value)
+            for value in re.findall(
+                r"elementor-post-info__item--type-custom\">\s*([^<]+?)\s*</span>",
+                body,
+                flags=re.IGNORECASE | re.DOTALL,
+            )
+        ]
+        price_text = next((text for text in custom_texts if "leje" in text.lower()), "")
+        price_amount = extract_price_amount(price_text)
+
+        location_text = ", ".join(part for part in [address, city] if part)
+        if not matches_cej_location_and_price(location_text, price_amount):
+            continue
+
+        status = "Available"
+        status_text = " ".join(custom_texts).lower()
+        if "udlejet" in status_text:
+            status = "Rented"
+        elif "reserveret" in status_text:
+            status = "Reserved"
+
+        apartments.append(
+            {
+                "id": f"sweethomes:{post_id}",
+                "status": status,
+                "name": address,
+                "price": {"amount": price_amount if price_amount is not None else "Unknown"},
+                "location": {"formatted": location_text or "Unknown location"},
+                "availableFrom": "See link for info",
+                "url": link,
+                "source": "Sweet Homes",
+            }
+        )
+
+    return apartments
+
+
 def fetch_apartments():
     all_items = []
     
@@ -311,6 +738,36 @@ def fetch_apartments():
         all_items.extend(fetch_city_apartments())
     except Exception as e:
         print(f"Error parsing City Apartment listings: {e}")
+
+    # Capital Bolig properties (København V + Frederiksberg)
+    try:
+        all_items.extend(fetch_capitalbolig_apartments())
+    except Exception as e:
+        print(f"Error parsing Capital Bolig listings: {e}")
+
+    # Juli Living properties (København K)
+    try:
+        all_items.extend(fetch_juliliving_apartments())
+    except Exception as e:
+        print(f"Error parsing Juli Living listings: {e}")
+
+    # C.W. Obel properties (Islands Brygge)
+    try:
+        all_items.extend(fetch_cwobel_apartments())
+    except Exception as e:
+        print(f"Error parsing C.W. Obel listings: {e}")
+
+    # Propstep properties (CEJ-equivalent location + price filter)
+    try:
+        all_items.extend(fetch_propstep_apartments())
+    except Exception as e:
+        print(f"Error parsing Propstep listings: {e}")
+
+    # Sweet Homes properties (CEJ-equivalent location + price filter)
+    try:
+        all_items.extend(fetch_sweet_homes_apartments())
+    except Exception as e:
+        print(f"Error parsing Sweet Homes listings: {e}")
         
     return all_items
 
@@ -344,7 +801,7 @@ def run_check():
         # Notify if completely new OR if the status changed (e.g. reserved -> available)
         if previous_status is None or previous_status != status:
             reason = "New apartment found" if previous_status is None else f"Status changed ({previous_status} -> {status})"
-            print(f"{reason}: {apt.get('name')} ({apt_id})")
+            print(f"{reason}: {safe_console_text(apt.get('name'))} ({apt_id})")
             
             if send_discord_notification(apt):
                 seen_states[apt_id] = status
