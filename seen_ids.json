@@ -286,7 +286,7 @@
   "sweethomes:2347773": "Available",
   "sweethomes:2343717": "Available",
   "sweethomes:2343713": "Available",
-  "sweethomes:2224468": "Available",
+  "sweethomes:2224468": "Reserved",
   "sweethomes:2224487": "Reserved",
   "sweethomes:2347805": "Available",
   "sweethomes:2347801": "Available",
@@ -302,5 +302,6 @@
   "sweethomes:2344825": "Available",
   "sweethomes:2343689": "Rented",
   "sweethomes:2347660": "Rented",
-  "sweethomes:2224470": "Rented"
+  "sweethomes:2224470": "Rented",
+  "propstep:66fc1b0a9be64e38a4b2d2e6": "Rented"
 }
