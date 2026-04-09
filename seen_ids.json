@@ -18,7 +18,7 @@
   "ee4ebb8a74534215ab320a7b5747f276": "available",
   "86f3f816754cfe7bb0dfec3da6a8e5aa": "reserved",
   "d9ed3eec034e499698b1ff5d5c240982": "reserved",
-  "a10da5e090e44c449ce1e2f5ad4c2a82": "available",
+  "a10da5e090e44c449ce1e2f5ad4c2a82": "reserved",
   "afa6c01e83fb28f9079b70362452d98a": "available",
   "2725a7817bb445d3a127bd80ef6e42e9": "reserved",
   "7df74283bcddbca22226e8616986bc93": "reserved",
@@ -322,5 +322,10 @@
   "propstep:69368bb33840fb172cd9add6": "Rented",
   "propstep:67ff994ed9687d40eb74afe7": "Rented",
   "propstep:69b1ca02159c1b61ea34c350": "Rented",
-  "propstep:696a35e5fabf8d5150f7b743": "Rented"
+  "propstep:696a35e5fabf8d5150f7b743": "Rented",
+  "propstep:64c0ef458f8ff90a4a0dba1e": "Rented",
+  "propstep:65041adf8ca09a39dab04fe1": "Rented",
+  "propstep:65041adf8ca09a39dab0505d": "Rented",
+  "propstep:67f64fccbba3eb36eeb1c1e1": "Rented",
+  "propstep:67f64fcdbba3eb36eeb1c495": "Rented"
 }
