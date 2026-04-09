@@ -3,9 +3,11 @@ import os
 import re
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.request
 from datetime import datetime
+from html import unescape
 
 # Configurations
 API_URL = "https://udlejning.cej.dk/find-bolig/overblik?collection=residences&monthlyPrice=0-50000&p=sj%C3%A6lland&_data=routes%2Fsearch%2Flayout"
@@ -117,28 +119,173 @@ def read_non_negative_int_env(name, default):
 RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
 CEJ_MAX_PRICE = 50000
-CEJ_MIN_POSTCODE = 1000
-CEJ_MAX_POSTCODE = 3999
+CEJ_PRIMARY_POSTCODE_MIN = 1000
+CEJ_PRIMARY_POSTCODE_MAX = 2500
+CEJ_EXTRA_POSTCODES = {2700, 2720}
 CEJ_LOCATION_KEYWORDS = [
-    "københavn",
+    "kobenhavn",
     "frederiksberg",
     "valby",
     "amager",
     "hvidovre",
-    "rødovre",
-    "brønshøj",
-    "vanløse",
-    "nørrebro",
+    "rodovre",
+    "bronshoj",
+    "vanlose",
+    "norrebro",
     "vesterbro",
-    "østerbro",
+    "osterbro",
     "islands brygge",
 ]
+STATUS_LABELS = {
+    1: "Available",
+    2: "Reserved",
+    3: "Rented",
+    "available": "Available",
+    "ledig": "Available",
+    "reserved": "Reserved",
+    "reserveret": "Reserved",
+    "rented": "Rented",
+    "udlejet": "Rented",
+}
+DANISH_TRANSLATION = str.maketrans({
+    "æ": "ae",
+    "ø": "o",
+    "å": "a",
+})
 
 
 def safe_console_text(value):
     text = str(value)
     encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
     return text.encode(encoding, errors="replace").decode(encoding, errors="replace")
+
+
+def normalize_search_text(value):
+    text = str(value or "").strip().lower().translate(DANISH_TRANSLATION)
+    normalized = unicodedata.normalize("NFKD", text)
+    ascii_text = normalized.encode("ascii", errors="ignore").decode("ascii")
+    return re.sub(r"\s+", " ", ascii_text).strip()
+
+
+def extract_numeric_value(raw_value):
+    if raw_value is None:
+        return None
+
+    if isinstance(raw_value, (int, float)):
+        return int(raw_value)
+
+    text = str(raw_value)
+    match = re.search(r"(\d[\d\.\s,]*)", text)
+    if not match:
+        return None
+
+    digits = re.sub(r"\D", "", match.group(1))
+    if not digits:
+        return None
+
+    try:
+        return int(digits)
+    except ValueError:
+        return None
+
+
+def normalize_listing_status(raw_status):
+    if raw_status is None:
+        return "unknown"
+
+    if isinstance(raw_status, (int, float)):
+        raw_status = int(raw_status)
+
+    normalized = normalize_search_text(raw_status)
+    if normalized in STATUS_LABELS:
+        return STATUS_LABELS[normalized]
+    if raw_status in STATUS_LABELS:
+        return STATUS_LABELS[raw_status]
+    return str(raw_status)
+
+
+def is_target_postal_code(post_code):
+    return CEJ_PRIMARY_POSTCODE_MIN <= post_code <= CEJ_PRIMARY_POSTCODE_MAX or post_code in CEJ_EXTRA_POSTCODES
+
+
+def extract_html_text_lines(html):
+    text = re.sub(r"<script[^>]*>[\s\S]*?</script>", " ", html, flags=re.IGNORECASE)
+    text = re.sub(r"<style[^>]*>[\s\S]*?</style>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"<[^>]+>", "\n", text)
+
+    lines = []
+    for line in text.splitlines():
+        cleaned = re.sub(r"\s+", " ", unescape(line).replace("\xa0", " ")).strip()
+        if cleaned:
+            lines.append(cleaned)
+    return lines
+
+
+def extract_labeled_text_value(lines, label):
+    normalized_label = normalize_search_text(label)
+    for index, line in enumerate(lines):
+        if normalize_search_text(line) != normalized_label:
+            continue
+        for candidate in lines[index + 1 :]:
+            if normalize_search_text(candidate) == normalized_label:
+                continue
+            return candidate
+    return None
+
+
+def build_embed_title(name, source):
+    if not source:
+        return name
+    return f"[{source}] {name}"
+
+
+def format_price_for_display(raw_price):
+    price_amount = extract_price_amount(raw_price)
+    if price_amount is None:
+        text = str(raw_price).strip()
+        return text or "Unknown"
+    return f"{price_amount} kr/month"
+
+
+def build_listing_fields(listing):
+    fields = [
+        {"name": "Status", "value": str(listing.get("status", "unknown")), "inline": True},
+        {
+            "name": "Price",
+            "value": format_price_for_display(listing.get("price", {}).get("amount", "Unknown")),
+            "inline": True,
+        },
+    ]
+
+    size_sqm = extract_numeric_value(listing.get("size_sqm"))
+    if size_sqm is not None:
+        fields.append({"name": "Area", "value": f"{size_sqm} m²", "inline": True})
+
+    rooms = extract_numeric_value(listing.get("rooms"))
+    if rooms is not None:
+        fields.append({"name": "Rooms", "value": str(rooms), "inline": True})
+
+    fields.extend(
+        [
+            {
+                "name": "Address",
+                "value": listing.get("location", {}).get("formatted", "Unknown Address"),
+                "inline": True,
+            },
+            {"name": "Available From", "value": str(listing.get("availableFrom", "Unknown Date")), "inline": True},
+        ]
+    )
+
+    return fields
+
+
+def normalize_cej_listing(item):
+    listing = dict(item)
+    listing["source"] = listing.get("source") or "CEJ"
+    listing["status"] = normalize_listing_status(item.get("status"))
+    listing["size_sqm"] = extract_numeric_value(item.get("floorSize"))
+    listing["rooms"] = extract_numeric_value(item.get("numberOfRooms"))
+    return listing
 
 def load_seen_states():
     if os.path.exists(SEEN_IDS_FILE):
@@ -173,10 +320,6 @@ def send_discord_notification(listing):
         return False
 
     name = listing.get("name", "Unknown Apartment")
-    price = listing.get("price", {}).get("amount", "Unknown Price")
-    address = listing.get("location", {}).get("formatted", "Unknown Address")
-    available_from = listing.get("availableFrom", "Unknown Date")
-    status = listing.get("status", "unknown")
     link = listing.get("url") or f"https://udlejning.cej.dk/boliger/{listing.get('id', '')}"
     source = listing.get("source", "CEJ")
     
@@ -187,15 +330,10 @@ def send_discord_notification(listing):
         "content": f"{mention_prefix}:rotating_light: **New Apartment Alert!** :rotating_light:",
         "embeds": [
             {
-                "title": name,
+                "title": build_embed_title(name, source),
                 "url": link,
                 "color": 3447003,  # Blue
-                "fields": [
-                    {"name": "Status", "value": str(status), "inline": True},
-                    {"name": "Price", "value": f"{price} kr/month", "inline": True},
-                    {"name": "Address", "value": address, "inline": True},
-                    {"name": "Available From", "value": available_from, "inline": True},
-                ],
+                "fields": build_listing_fields(listing),
                 "footer": {"text": f"{source} Udlejning Watcher - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"},
             }
         ],
@@ -279,25 +417,7 @@ def strip_html_tags(value):
 
 
 def extract_price_amount(raw_value):
-    if raw_value is None:
-        return None
-
-    if isinstance(raw_value, (int, float)):
-        return int(raw_value)
-
-    text = str(raw_value)
-    match = re.search(r"(\d[\d\.\s,]*)", text)
-    if not match:
-        return None
-
-    digits = re.sub(r"\D", "", match.group(1))
-    if not digits:
-        return None
-
-    try:
-        return int(digits)
-    except ValueError:
-        return None
+    return extract_numeric_value(raw_value)
 
 
 def extract_postal_code(text):
@@ -314,25 +434,25 @@ def matches_cej_location_and_price(location_text, price_amount):
     if price_amount is not None and price_amount > CEJ_MAX_PRICE:
         return False
 
-    normalized = str(location_text or "").strip().lower()
+    normalized = normalize_search_text(location_text)
     post_code = extract_postal_code(normalized)
-    if post_code is not None:
-        return CEJ_MIN_POSTCODE <= post_code <= CEJ_MAX_POSTCODE
+    if post_code is not None and is_target_postal_code(post_code):
+        return True
 
     return any(keyword in normalized for keyword in CEJ_LOCATION_KEYWORDS)
 
 
 def is_capital_target_location(location_text):
-    normalized = str(location_text or "").lower()
-    return "københavn v" in normalized or "frederiksberg" in normalized
+    normalized = normalize_search_text(location_text)
+    return "kobenhavn v" in normalized or "frederiksberg" in normalized
 
 
 def is_juliliving_target_location(location_text):
-    return "københavn k" in str(location_text or "").lower()
+    return "kobenhavn k" in normalize_search_text(location_text)
 
 
 def is_cwobel_target_location(location_text):
-    return "islands brygge" in str(location_text or "").lower()
+    return "islands brygge" in normalize_search_text(location_text)
 
 
 def fetch_cej_apartments():
@@ -457,16 +577,29 @@ def fetch_capitalbolig_apartments():
         if not is_capital_target_location(title):
             continue
 
+        detail_lines = []
+        try:
+            detail_lines = extract_html_text_lines(fetch_url_text(link))
+        except Exception as e:
+            print(f"Error fetching Capital Bolig detail page for {safe_console_text(title)}: {e}")
+
+        price_amount = extract_price_amount(extract_labeled_text_value(detail_lines, "Husleje"))
+        size_sqm = extract_numeric_value(extract_labeled_text_value(detail_lines, "Antal m2"))
+        rooms = extract_numeric_value(extract_labeled_text_value(detail_lines, "Antal rum"))
+        available_from = extract_labeled_text_value(detail_lines, "Overtagelsesdato") or "See link for info"
+
         apartments.append(
             {
                 "id": f"capital:{listing_id}",
                 "status": "Available",
                 "name": title,
-                "price": {"amount": "Unknown"},
+                "price": {"amount": price_amount if price_amount is not None else "Unknown"},
                 "location": {"formatted": title},
-                "availableFrom": "See link for info",
+                "availableFrom": available_from,
                 "url": link,
                 "source": "Capital Bolig",
+                "size_sqm": size_sqm,
+                "rooms": rooms,
             }
         )
 
@@ -525,13 +658,15 @@ def fetch_juliliving_apartments():
         apartments.append(
             {
                 "id": f"juliliving:{unit_id}",
-                "status": unit.get("StatusText") or "Available",
+                "status": normalize_listing_status(unit.get("StatusText") or "Available"),
                 "name": unit.get("Headline") or address or "Juli Living listing",
                 "price": {"amount": price_amount if price_amount is not None else "Unknown"},
                 "location": {"formatted": location_text or "København K"},
                 "availableFrom": unit.get("VacantDate") or "See link for info",
                 "url": unit.get("url") or JULILIVING_PAGE_URL,
                 "source": "Juli Living",
+                "size_sqm": extract_numeric_value(unit.get("SquareMeters") or unit.get("area")),
+                "rooms": extract_numeric_value(unit.get("rooms") or unit.get("nofRooms")),
             }
         )
 
@@ -640,19 +775,24 @@ def fetch_propstep_apartments():
                 if not matches_cej_location_and_price(location_text, price_amount):
                     continue
 
-                status_map = {1: "Available", 2: "Reserved", 3: "Rented"}
                 slug = prop.get("slug") or str(prop_id)
+                effective_status = prop.get("transactionStatus")
+                if effective_status is None:
+                    effective_status = prop.get("status")
+                property_details = prop.get("propertyDetails") or {}
 
                 apartments.append(
                     {
                         "id": f"propstep:{prop_id}",
-                        "status": status_map.get(prop.get("status"), str(prop.get("status", "unknown"))),
+                        "status": normalize_listing_status(effective_status),
                         "name": prop.get("name") or address or "Propstep listing",
                         "price": {"amount": price_amount if price_amount is not None else "Unknown"},
                         "location": {"formatted": location_text or "Unknown location"},
                         "availableFrom": (prop.get("transactionDetails") or {}).get("availableFrom") or "See link for info",
                         "url": f"https://propstep.com/da-DK/soeg?slug={slug}",
                         "source": "Propstep",
+                        "size_sqm": extract_numeric_value(property_details.get("size")),
+                        "rooms": extract_numeric_value(property_details.get("rooms")),
                     }
                 )
 
@@ -731,7 +871,7 @@ def fetch_apartments():
     all_items = []
     
     # CEJ properties
-    all_items.extend(fetch_cej_apartments())
+    all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
 
     # City Apartment properties
     try:
