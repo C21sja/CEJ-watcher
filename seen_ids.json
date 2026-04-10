@@ -44,7 +44,7 @@
   "capital:2397": "Available",
   "capital:3996": "Available",
   "juliliving:6099": "Available",
-  "juliliving:6104": "Available",
+  "juliliving:6104": "Reserved",
   "juliliving:6105": "Available",
   "propstep:64c0ef458f8ff90a4a0dba1a": "Rented",
   "propstep:64c0ef458f8ff90a4a0dba02": "Reserved",
@@ -332,5 +332,6 @@
   "propstep:69b1ca00159c1b61ea34c337": "Available",
   "propstep:69b1ca04159c1b61ea34c369": "Available",
   "a19414e9e8ae46ed8086d5fc105ba066": "Available",
-  "propstep:66f06a1787dbc9256816b024": "Available"
+  "propstep:66f06a1787dbc9256816b024": "Available",
+  "propstep:66f06a2487dbc9256816b0b4": "Available"
 }
