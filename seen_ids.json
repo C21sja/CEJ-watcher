@@ -68,7 +68,7 @@
   "propstep:68d3eb29a8541d5070e85bf2": "Available",
   "propstep:68d3eb29a8541d5070e85c16": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c37": "Reserved",
-  "propstep:68d3eb2aa8541d5070e85c3d": "Available",
+  "propstep:68d3eb2aa8541d5070e85c3d": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c41": "Reserved",
   "propstep:66cc79c27dfb60253cae4720": "Rented",
   "propstep:66cc79c17dfb60253cae4645": "Rented",
@@ -336,5 +336,6 @@
   "propstep:66f06a2487dbc9256816b0b4": "Available",
   "https://cityapartment.dk/da/cityapartments/uplandsgade-36a-st-th-2/": "Available",
   "propstep:6864327336d031023c68c689": "Available",
-  "https://cityapartment.dk/da/cityapartments/store-kongensgade-65b-1-sal/": "Available"
+  "https://cityapartment.dk/da/cityapartments/store-kongensgade-65b-1-sal/": "Available",
+  "propstep:695b82db1309ff348e73adf5": "Available"
 }
