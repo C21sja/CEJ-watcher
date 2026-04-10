@@ -49,7 +49,7 @@
   "propstep:64c0ef458f8ff90a4a0dba1a": "Rented",
   "propstep:64c0ef458f8ff90a4a0dba02": "Reserved",
   "propstep:68d3eb28a8541d5070e85bb9": "Available",
-  "propstep:68d3eb28a8541d5070e85bbd": "Available",
+  "propstep:68d3eb28a8541d5070e85bbd": "Reserved",
   "propstep:68d3eb28a8541d5070e85bbf": "Available",
   "propstep:68d3eb28a8541d5070e85bc7": "Available",
   "propstep:68d3eb29a8541d5070e85be2": "Available",
@@ -126,7 +126,7 @@
   "propstep:68cbde0aab2d352a63b5fd2e": "Reserved",
   "propstep:68cbde0bab2d352a63b5fd46": "Reserved",
   "propstep:68cbde0aab2d352a63b5fd32": "Reserved",
-  "propstep:68cbde0aab2d352a63b5fd36": "Available",
+  "propstep:68cbde0aab2d352a63b5fd36": "Reserved",
   "propstep:68cbde0bab2d352a63b5fd72": "Available",
   "propstep:68cbde0cab2d352a63b5fd88": "Available",
   "propstep:68cbde0aab2d352a63b5fd18": "Reserved",
@@ -333,5 +333,7 @@
   "propstep:69b1ca04159c1b61ea34c369": "Available",
   "a19414e9e8ae46ed8086d5fc105ba066": "Available",
   "propstep:66f06a1787dbc9256816b024": "Available",
-  "propstep:66f06a2487dbc9256816b0b4": "Available"
+  "propstep:66f06a2487dbc9256816b0b4": "Available",
+  "https://cityapartment.dk/da/cityapartments/uplandsgade-36a-st-th-2/": "Available",
+  "propstep:6864327336d031023c68c689": "Available"
 }
