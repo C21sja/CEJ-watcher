@@ -12,8 +12,42 @@ class LocationFilterTests(unittest.TestCase):
 
     def test_keeps_copenhagen_addresses(self):
         self.assertTrue(
-            watcher.matches_cej_location_and_price("Rebslagervej 7B, 2. tv, 2400 København NV", 20000)
+            watcher.matches_cej_location_and_price("Rebslagervej 7B, 2. tv, 2400 København NV", 18000)
         )
+
+    def test_rejects_prices_over_max(self):
+        self.assertFalse(
+            watcher.matches_cej_location_and_price("Rebslagervej 7B, 2. tv, 2400 København NV", 18001)
+        )
+
+    def test_rejects_excluded_cities(self):
+        self.assertFalse(
+            watcher.matches_cej_location_and_price("Hvidovrevej 10, 2650 Hvidovre", 12000)
+        )
+
+
+class GeneralFilterTests(unittest.TestCase):
+    def test_rejects_general_listings_above_max_price(self):
+        listing = {
+            "price": {"amount": 19000},
+            "location": {"formatted": "Sankt Annae Plads 1, 1250 Koebenhavn K"},
+        }
+        self.assertFalse(watcher.matches_general_listing_filters(listing))
+
+    def test_rejects_general_listings_in_excluded_locations(self):
+        listing = {
+            "price": {"amount": 12000},
+            "location": {"formatted": "Park Alle 10, 2605 Brondby"},
+            "name": "Lejlighed taet paa Ballerup",
+        }
+        self.assertFalse(watcher.matches_general_listing_filters(listing))
+
+    def test_accepts_general_listings_within_rules(self):
+        listing = {
+            "price": {"amount": 15000},
+            "location": {"formatted": "Norrebrogade 1, 2200 Koebenhavn N"},
+        }
+        self.assertTrue(watcher.matches_general_listing_filters(listing))
 
 
 class PropstepTests(unittest.TestCase):
@@ -35,7 +69,7 @@ class PropstepTests(unittest.TestCase):
                                 "city": "København NV",
                             },
                             "transactionDetails": {
-                                "price": 2000000,
+                                "price": 1800000,
                                 "availableFrom": "2026-04-14T22:00:00.000+00:00",
                             },
                             "propertyDetails": {"size": 82, "rooms": 3},

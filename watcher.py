@@ -118,17 +118,16 @@ def read_non_negative_int_env(name, default):
 
 RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
-CEJ_MAX_PRICE = 50000
+CEJ_MAX_PRICE = 18000
 CEJ_PRIMARY_POSTCODE_MIN = 1000
 CEJ_PRIMARY_POSTCODE_MAX = 2500
 CEJ_EXTRA_POSTCODES = {2700, 2720}
+EXCLUDED_LOCATION_KEYWORDS = ["rodovre", "hvidovre", "ballerup"]
 CEJ_LOCATION_KEYWORDS = [
     "kobenhavn",
     "frederiksberg",
     "valby",
     "amager",
-    "hvidovre",
-    "rodovre",
     "bronshoj",
     "vanlose",
     "norrebro",
@@ -430,16 +429,40 @@ def extract_postal_code(text):
     return int(match.group(1))
 
 
+def contains_excluded_location(text):
+    normalized = normalize_search_text(text)
+    return any(keyword in normalized for keyword in EXCLUDED_LOCATION_KEYWORDS)
+
+
 def matches_cej_location_and_price(location_text, price_amount):
     if price_amount is not None and price_amount > CEJ_MAX_PRICE:
         return False
 
     normalized = normalize_search_text(location_text)
+    if contains_excluded_location(normalized):
+        return False
+
     post_code = extract_postal_code(normalized)
     if post_code is not None and is_target_postal_code(post_code):
         return True
 
     return any(keyword in normalized for keyword in CEJ_LOCATION_KEYWORDS)
+
+
+def matches_general_listing_filters(listing):
+    price_amount = extract_price_amount((listing.get("price") or {}).get("amount"))
+    if price_amount is not None and price_amount > CEJ_MAX_PRICE:
+        return False
+
+    location = listing.get("location") or {}
+    location_text = ""
+    if isinstance(location, dict):
+        location_text = str(location.get("formatted") or "")
+    else:
+        location_text = str(location or "")
+
+    name_text = str(listing.get("name") or "")
+    return not contains_excluded_location(f"{location_text} {name_text}")
 
 
 def is_capital_target_location(location_text):
@@ -923,6 +946,9 @@ def run_check():
     for apt in apartments:
         if not isinstance(apt, dict):
             raise WatcherError("CEJ API returned apartment items in an unexpected format.")
+
+        if not matches_general_listing_filters(apt):
+            continue
 
         apt_id = apt.get("id")
         status = apt.get("status")
