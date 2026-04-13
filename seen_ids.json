@@ -265,7 +265,7 @@
   "propstep:696a3c46bf5b1f79d15a54a5": "Rented",
   "propstep:66f13dfc35db520e6ce4c3db": "Available",
   "propstep:66f13e0335db520e6ce4d1f8": "Reserved",
-  "propstep:66f13dfc87dbc9256826e388": "Available",
+  "propstep:66f13dfc87dbc9256826e388": "Reserved",
   "propstep:66f13e0987dbc9256826f1f3": "Available",
   "propstep:696a35e1f525ba5e566b05eb": "Available",
   "propstep:696a35e3f525ba5e566b061b": "Available",
@@ -338,5 +338,6 @@
   "propstep:6864327336d031023c68c689": "Available",
   "https://cityapartment.dk/da/cityapartments/store-kongensgade-65b-1-sal/": "Available",
   "propstep:695b82db1309ff348e73adf5": "Available",
-  "192fe200d07b2459f6bdf72e5cba28ff": "Reserved"
+  "192fe200d07b2459f6bdf72e5cba28ff": "Reserved",
+  "436a14a846b42f0bfd1b903f12d9235f": "Reserved"
 }
