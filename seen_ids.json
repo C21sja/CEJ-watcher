@@ -31,7 +31,7 @@
   "9f5b20e435424253a6d4e90b88aa076f": "reserved",
   "41b15fd299104f6baadbcf507e11d904": "available",
   "87fd55f0fcf29a0a4e3921a64fffa2e8": "reserved",
-  "308d2af6045b4b2a8cb7145b3c97c399": "Reserved",
+  "308d2af6045b4b2a8cb7145b3c97c399": "Available",
   "07d99caba1284b6fb06cce8380f4fbf1": "Available",
   "7a95b160396246d9b19bfe88dfbe84c6": "Available",
   "https://cityapartment.dk/da/cityapartments/gammel-jernbanevej-9-5-th/": "Available",
@@ -182,7 +182,7 @@
   "propstep:66f13e1187dbc9256826f283": "Rented",
   "propstep:682ade17e35abf6f39916636": "Reserved",
   "propstep:682ade18e35abf6f39916653": "Reserved",
-  "propstep:682ade18e35abf6f39916667": "Reserved",
+  "propstep:682ade18e35abf6f39916667": "Available",
   "propstep:682ade17e35abf6f3991663a": "Available",
   "propstep:682ade17e35abf6f39916646": "Available",
   "propstep:682ade18e35abf6f3991664f": "Available",
@@ -342,7 +342,7 @@
   "436a14a846b42f0bfd1b903f12d9235f": "Reserved",
   "5f16f369e8ec49949dc9ac60273a6588": "Available",
   "f7188a62fa2e4a43b6dc7a0084f668bf": "Reserved",
-  "4d70acd8faa749cf9b623457e748b991": "Available",
+  "4d70acd8faa749cf9b623457e748b991": "Reserved",
   "774c81fdc570b1acfd209a9ed3b0ec34": "Reserved",
   "propstep:6908b64b7ff4b3063071323d": "Available",
   "propstep:696a3c5a7bfa6a3e198421d3": "Available",
@@ -350,5 +350,10 @@
   "propstep:696a3ba9bf5b1f79d15a3b5f": "Available",
   "propstep:696a3be07bfa6a3e19841829": "Available",
   "propstep:696a35e3f525ba5e566b0607": "Available",
-  "propstep:696a35e2f525ba5e566b05fa": "Available"
+  "propstep:696a35e2f525ba5e566b05fa": "Available",
+  "bf36aa2bea874e63add2c97d080ff3db": "Available",
+  "7bd39fc0d3bc4f46b1f08417fdef435a": "Available",
+  "833d771a3077459fb682a425b4a6aaf3": "Available",
+  "659f24c13dcd247505acab7c1631aabe": "Reserved",
+  "7267ee831b721ce87d3f0f08d7d9e989": "Reserved"
 }
