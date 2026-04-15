@@ -122,14 +122,12 @@ CEJ_MAX_PRICE = 18000
 CEJ_PRIMARY_POSTCODE_MIN = 1000
 CEJ_PRIMARY_POSTCODE_MAX = 2500
 CEJ_EXTRA_POSTCODES = {2700, 2720}
-EXCLUDED_LOCATION_KEYWORDS = ["rodovre", "hvidovre", "ballerup"]
+EXCLUDED_LOCATION_KEYWORDS = ["rodovre", "hvidovre", "ballerup", "valby", "vanlose"]
 CEJ_LOCATION_KEYWORDS = [
     "kobenhavn",
     "frederiksberg",
-    "valby",
     "amager",
     "bronshoj",
-    "vanlose",
     "norrebro",
     "vesterbro",
     "osterbro",
@@ -326,7 +324,7 @@ def send_discord_notification(listing):
     mention_prefix = f"{mention} " if mention else ""
 
     message = {
-        "content": f"{mention_prefix}:rotating_light: **New Apartment Alert!** :rotating_light:",
+        "content": f"{mention_prefix}:rotating_light: **[{source}] New Apartment Alert!** :rotating_light:",
         "embeds": [
             {
                 "title": build_embed_title(name, source),

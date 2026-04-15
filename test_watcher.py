@@ -25,6 +25,14 @@ class LocationFilterTests(unittest.TestCase):
             watcher.matches_cej_location_and_price("Hvidovrevej 10, 2650 Hvidovre", 12000)
         )
 
+    def test_rejects_valby_and_vanlose(self):
+        self.assertFalse(
+            watcher.matches_cej_location_and_price("Toftegaards Alle 5, 2500 Valby", 12000)
+        )
+        self.assertFalse(
+            watcher.matches_cej_location_and_price("Jernbane Alle 12, 2720 Vanlose", 12000)
+        )
+
 
 class GeneralFilterTests(unittest.TestCase):
     def test_rejects_general_listings_above_max_price(self):
@@ -152,6 +160,7 @@ class DiscordNotificationTests(unittest.TestCase):
         embed = captured["payload"]["embeds"][0]
         field_names = [field["name"] for field in embed["fields"]]
 
+        self.assertIn("Propstep", captured["payload"]["content"])
         self.assertIn("Propstep", embed["title"])
         self.assertIn("Area", field_names)
         self.assertIn("Rooms", field_names)
