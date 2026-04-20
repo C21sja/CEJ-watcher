@@ -183,7 +183,7 @@
   "propstep:682ade17e35abf6f39916636": "Reserved",
   "propstep:682ade18e35abf6f39916653": "Reserved",
   "propstep:682ade18e35abf6f39916667": "Reserved",
-  "propstep:682ade17e35abf6f3991663a": "Available",
+  "propstep:682ade17e35abf6f3991663a": "Reserved",
   "propstep:682ade17e35abf6f39916646": "Reserved",
   "propstep:682ade18e35abf6f3991664f": "Reserved",
   "propstep:696a35fcf525ba5e566b07cb": "Rented",
@@ -245,7 +245,7 @@
   "propstep:6864327036d031023c68c65d": "Available",
   "propstep:686432755072bd262ca9a76b": "Available",
   "propstep:686432765072bd262ca9a773": "Rented",
-  "propstep:69b1ca08159c1b61ea34c3bc": "Reserved",
+  "propstep:69b1ca08159c1b61ea34c3bc": "Available",
   "propstep:69b1ca08159c1b61ea34c3ba": "Available",
   "propstep:66f13df235db520e6ce4c32e": "Rented",
   "propstep:68e3c2152c0b03562553a387": "Rented",
@@ -367,5 +367,7 @@
   "https://cityapartment.dk/da/cityapartments/willemosegade-18-2-th/": "Available",
   "https://cityapartment.dk/da/cityapartments/j-m-thieles-vej-16-4-th/": "Available",
   "c390a5be8cc3450699d4682e2848fecc": "Available",
-  "https://cityapartment.dk/da/cityapartments/beringsvej-5-st-tv/": "Available"
+  "https://cityapartment.dk/da/cityapartments/beringsvej-5-st-tv/": "Available",
+  "2b46adf1e42f5a09169441de217be8d3": "Reserved",
+  "e6a02795574f44ef917bf4e3d5e27b58": "Available"
 }
