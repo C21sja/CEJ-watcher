@@ -184,7 +184,7 @@
   "propstep:682ade18e35abf6f39916653": "Reserved",
   "propstep:682ade18e35abf6f39916667": "Reserved",
   "propstep:682ade17e35abf6f3991663a": "Reserved",
-  "propstep:682ade17e35abf6f39916646": "Reserved",
+  "propstep:682ade17e35abf6f39916646": "Available",
   "propstep:682ade18e35abf6f3991664f": "Reserved",
   "propstep:696a35fcf525ba5e566b07cb": "Rented",
   "propstep:6548d82955a74c5e91b4d2db": "Rented",
@@ -357,12 +357,12 @@
   "659f24c13dcd247505acab7c1631aabe": "Reserved",
   "7267ee831b721ce87d3f0f08d7d9e989": "Reserved",
   "34156306013d40d19a8c67d0067049dd": "Reserved",
-  "59276cbede194b4b838e44783fea71fe": "Available",
+  "59276cbede194b4b838e44783fea71fe": "Reserved",
   "propstep:696a3c557bfa6a3e19842187": "Reserved",
   "97ac9dd294fd459eaf1b5f1b24483df6": "Reserved",
   "propstep:69b1ca07159c1b61ea34c3b0": "Available",
   "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-3-tv/": "Available",
-  "1b2762d9a89f4bcca6f89e8e968f6059": "Reserved",
+  "1b2762d9a89f4bcca6f89e8e968f6059": "Available",
   "https://cityapartment.dk/da/cityapartments/bronzehoejen-32/": "Available",
   "https://cityapartment.dk/da/cityapartments/willemosegade-18-2-th/": "Available",
   "https://cityapartment.dk/da/cityapartments/j-m-thieles-vej-16-4-th/": "Available",
@@ -376,5 +376,7 @@
   "propstep:6864326f5072bd262ca9a724": "Available",
   "propstep:66f13e0c87dbc9256826f22d": "Available",
   "b9160ef6d181f3e3d20558f42bec31af": "Reserved",
-  "propstep:64998e5ebaacbe5355e60087": "Available"
+  "propstep:64998e5ebaacbe5355e60087": "Available",
+  "a7b73fe8c63e4bea949003f6bef41f8b": "Available",
+  "b804d00439954c41aa9db789b75bd435": "Reserved"
 }
