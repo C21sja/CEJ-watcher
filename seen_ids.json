@@ -228,7 +228,7 @@
   "propstep:642abfa1b9add4490d21b7b2": "Rented",
   "propstep:68edfc30bc56665b69b7cf43": "Reserved",
   "propstep:68edfc30bc56665b69b7cf37": "Reserved",
-  "propstep:68edfc30bc56665b69b7cf4b": "Reserved",
+  "propstep:68edfc30bc56665b69b7cf4b": "Available",
   "propstep:68edfc2fbc56665b69b7cf2d": "Reserved",
   "propstep:670fbbfbd5e72a51a10fafff": "Rented",
   "propstep:69148113f683006c91a35c2d": "Rented",
@@ -375,6 +375,6 @@
   "juliliving:6592": "Reserved",
   "propstep:6864326f5072bd262ca9a724": "Available",
   "propstep:66f13e0c87dbc9256826f22d": "Available",
-  "b9160ef6d181f3e3d20558f42bec31af": "Available",
+  "b9160ef6d181f3e3d20558f42bec31af": "Reserved",
   "propstep:64998e5ebaacbe5355e60087": "Available"
 }
