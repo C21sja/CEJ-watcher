@@ -360,7 +360,7 @@
   "59276cbede194b4b838e44783fea71fe": "Reserved",
   "propstep:696a3c557bfa6a3e19842187": "Reserved",
   "97ac9dd294fd459eaf1b5f1b24483df6": "Reserved",
-  "propstep:69b1ca07159c1b61ea34c3b0": "Reserved",
+  "propstep:69b1ca07159c1b61ea34c3b0": "Available",
   "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-3-tv/": "Available",
   "1b2762d9a89f4bcca6f89e8e968f6059": "Available",
   "https://cityapartment.dk/da/cityapartments/bronzehoejen-32/": "Available",
@@ -391,5 +391,7 @@
   "e9eb323bd639488c99807e03befa4117": "Reserved",
   "propstep:66f13e0b87dbc9256826f21b": "Available",
   "https://cityapartment.dk/da/cityapartments/junggreensvej-17-2-th/": "Available",
-  "880ae4c015f07ccd6fa1486c7ec7c60d": "Reserved"
+  "880ae4c015f07ccd6fa1486c7ec7c60d": "Reserved",
+  "propstep:64c0ef458f8ff90a4a0db9ea": "Available",
+  "propstep:69ef4ef14507972875e1bbf4": "Available"
 }
