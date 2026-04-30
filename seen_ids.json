@@ -259,7 +259,7 @@
   "propstep:68e3c2142c0b03562553a325": "Rented",
   "propstep:69bbd51b7ff45d6f2391e8a0": "Reserved",
   "propstep:67605e299267223f690978a2": "Rented",
-  "propstep:696a3c04bf5b1f79d15a4f7a": "Available",
+  "propstep:696a3c04bf5b1f79d15a4f7a": "Reserved",
   "propstep:696a3be57bfa6a3e19841868": "Reserved",
   "propstep:691b32c2b681c864676300ad": "Rented",
   "propstep:696a3c46bf5b1f79d15a54a5": "Rented",
@@ -380,7 +380,7 @@
   "a7b73fe8c63e4bea949003f6bef41f8b": "Reserved",
   "b804d00439954c41aa9db789b75bd435": "Reserved",
   "propstep:64c0ef458f8ff90a4a0dba4e": "Reserved",
-  "propstep:64c0ef458f8ff90a4a0dba5a": "Available",
+  "propstep:64c0ef458f8ff90a4a0dba5a": "Reserved",
   "propstep:64c0ef458f8ff90a4a0dba0c": "Available",
   "propstep:64c0ef458f8ff90a4a0dba3a": "Reserved",
   "858a34aa8388b569cf6098ff80650058": "Reserved",
@@ -392,6 +392,8 @@
   "propstep:66f13e0b87dbc9256826f21b": "Available",
   "https://cityapartment.dk/da/cityapartments/junggreensvej-17-2-th/": "Available",
   "880ae4c015f07ccd6fa1486c7ec7c60d": "Reserved",
-  "propstep:64c0ef458f8ff90a4a0db9ea": "Available",
-  "propstep:69ef4ef14507972875e1bbf4": "Available"
+  "propstep:64c0ef458f8ff90a4a0db9ea": "Reserved",
+  "propstep:69ef4ef14507972875e1bbf4": "Available",
+  "sweethomes:2348285": "Available",
+  "sweethomes:2348276": "Available"
 }
