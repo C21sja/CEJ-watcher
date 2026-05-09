@@ -373,7 +373,7 @@
   "5b25138204274057bedb33e38828ff65": "Available",
   "1f6a28bf9a5c413d8eb8e8be5a99e847": "Reserved",
   "juliliving:6592": "Reserved",
-  "propstep:6864326f5072bd262ca9a724": "Available",
+  "propstep:6864326f5072bd262ca9a724": "Reserved",
   "propstep:66f13e0c87dbc9256826f22d": "Available",
   "b9160ef6d181f3e3d20558f42bec31af": "Reserved",
   "propstep:64998e5ebaacbe5355e60087": "Available",
@@ -393,7 +393,7 @@
   "https://cityapartment.dk/da/cityapartments/junggreensvej-17-2-th/": "Available",
   "880ae4c015f07ccd6fa1486c7ec7c60d": "Reserved",
   "propstep:64c0ef458f8ff90a4a0db9ea": "Reserved",
-  "propstep:69ef4ef14507972875e1bbf4": "Available",
+  "propstep:69ef4ef14507972875e1bbf4": "Reserved",
   "sweethomes:2348285": "Available",
   "sweethomes:2348276": "Available",
   "propstep:6864327536d031023c68c6d0": "Available",
@@ -409,7 +409,7 @@
   "propstep:69b1ca0749a01c62fc13c50f": "Available",
   "propstep:69f46db6196c7f7733188d59": "Available",
   "propstep:696a3c5d7bfa6a3e1984229e": "Available",
-  "propstep:696a3abcbf5b1f79d15a2bb5": "Available",
+  "propstep:696a3abcbf5b1f79d15a2bb5": "Reserved",
   "propstep:696a3babbf5b1f79d15a3b86": "Available",
   "propstep:686432755072bd262ca9a763": "Available",
   "propstep:66f13e0b87dbc9256826f21e": "Available",
@@ -437,5 +437,8 @@
   "b9d3c21fcd5143dc9092ef07958bb0f2": "Available",
   "c8aeba51ce7d426fae9e4d825034f489": "Available",
   "0152e85a4add408e82464492e4c91ca1": "Available",
-  "4d3c66e5653340939db39f273231d6cc": "Available"
+  "4d3c66e5653340939db39f273231d6cc": "Available",
+  "propstep:69d4d874c1c12530c6c755ec": "Available",
+  "propstep:69d4d8767a8a3833bb2b3b53": "Available",
+  "propstep:69d4d8867a8a3833bb2b6aeb": "Available"
 }
