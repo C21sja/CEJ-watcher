@@ -33,6 +33,10 @@ class WatcherError(Exception):
     """Raised when the watcher cannot complete due to break conditions."""
 
 
+class CEJRateLimitError(WatcherError):
+    """Raised when CEJ keeps returning HTTP 429 after retry attempts."""
+
+
 def post_discord_payload(payload, max_attempts=5):
     data = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(
@@ -116,8 +120,10 @@ def read_non_negative_int_env(name, default):
         return default
 
 
-RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 28)
+RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 1)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
+CEJ_MAX_ATTEMPTS = read_non_negative_int_env("CEJ_MAX_ATTEMPTS", 3)
+CEJ_RETRY_BASE_SECONDS = read_non_negative_int_env("CEJ_RETRY_BASE_SECONDS", 15)
 CEJ_MAX_PRICE = 18000
 CEJ_PRIMARY_POSTCODE_MIN = 1000
 CEJ_PRIMARY_POSTCODE_MAX = 2500
@@ -476,18 +482,58 @@ def is_cwobel_target_location(location_text):
     return "islands brygge" in normalize_search_text(location_text)
 
 
-def fetch_cej_apartments():
-    print(f"[{datetime.now().isoformat()}] Fetching CEJ API...")
-    req = urllib.request.Request(API_URL, headers=HEADERS)
+def parse_retry_after_seconds(headers):
+    if not headers:
+        return None
+
+    retry_after = headers.get("Retry-After")
+    if retry_after is None:
+        return None
+
     try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            if response.status != 200:
-                raise WatcherError(f"CEJ API returned unexpected HTTP status: {response.status}")
-            raw_data = response.read().decode("utf-8")
-    except urllib.error.URLError as e:
-        raise WatcherError(f"Error fetching CEJ API: {e}") from e
-    except Exception as e:
-        raise WatcherError(f"Unexpected fetch error: {e}") from e
+        return max(0, int(float(str(retry_after).strip())))
+    except ValueError:
+        return None
+
+
+def calculate_cej_retry_delay(attempt, base_delay_seconds, retry_after_seconds=None):
+    if retry_after_seconds is not None:
+        return retry_after_seconds
+    return base_delay_seconds * (2 ** (attempt - 1))
+
+
+def is_cej_rate_limit_error(error):
+    return isinstance(error, CEJRateLimitError) or "rate limited" in str(error).lower()
+
+
+def fetch_cej_apartments(max_attempts=None, base_delay_seconds=None):
+    print(f"[{datetime.now().isoformat()}] Fetching CEJ API...")
+    max_attempts = max_attempts if max_attempts is not None else CEJ_MAX_ATTEMPTS
+    base_delay_seconds = base_delay_seconds if base_delay_seconds is not None else CEJ_RETRY_BASE_SECONDS
+
+    for attempt in range(1, max_attempts + 1):
+        req = urllib.request.Request(API_URL, headers=HEADERS)
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                if response.status != 200:
+                    raise WatcherError(f"CEJ API returned unexpected HTTP status: {response.status}")
+                raw_data = response.read().decode("utf-8")
+                break
+        except urllib.error.HTTPError as e:
+            if e.code == 429:
+                if attempt >= max_attempts:
+                    raise CEJRateLimitError(f"CEJ API rate limited after {max_attempts} attempts.") from e
+
+                retry_after_seconds = parse_retry_after_seconds(e.headers)
+                sleep_for = calculate_cej_retry_delay(attempt, base_delay_seconds, retry_after_seconds)
+                print(f"CEJ rate-limited (attempt {attempt}/{max_attempts}), retrying in {sleep_for}s.")
+                time.sleep(sleep_for)
+                continue
+            raise WatcherError(f"Error fetching CEJ API: {e}") from e
+        except urllib.error.URLError as e:
+            raise WatcherError(f"Error fetching CEJ API: {e}") from e
+        except Exception as e:
+            raise WatcherError(f"Unexpected fetch error: {e}") from e
 
     data = extract_json_from_remix(raw_data)
     if not data:
@@ -892,7 +938,12 @@ def fetch_apartments():
     all_items = []
     
     # CEJ properties
-    all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
+    try:
+        all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
+    except WatcherError as e:
+        if not is_cej_rate_limit_error(e):
+            raise
+        print(f"Skipping CEJ listings for this run: {e}")
 
     # City Apartment properties
     try:

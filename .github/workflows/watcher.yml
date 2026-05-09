@@ -55,6 +55,7 @@ jobs:
           DISCORD_MENTION_EVERYONE: ${{ vars.DISCORD_MENTION_EVERYONE || 'true' }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION || '@user' }}
           DISCORD_MENTION_USER_ID: ${{ vars.DISCORD_MENTION_USER_ID }}
+          WATCHER_RUNS: 1
         run: |
           python watcher.py
 

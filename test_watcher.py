@@ -1,4 +1,5 @@
 import unittest
+import urllib.error
 from unittest.mock import patch
 
 import watcher
@@ -56,6 +57,11 @@ class GeneralFilterTests(unittest.TestCase):
             "location": {"formatted": "Norrebrogade 1, 2200 Koebenhavn N"},
         }
         self.assertTrue(watcher.matches_general_listing_filters(listing))
+
+
+class RuntimeConfigTests(unittest.TestCase):
+    def test_default_run_count_avoids_continuous_polling(self):
+        self.assertEqual(1, watcher.RUN_COUNT)
 
 
 class PropstepTests(unittest.TestCase):
@@ -127,6 +133,56 @@ class CapitalBoligTests(unittest.TestCase):
         self.assertEqual(107, apartments[0]["size_sqm"])
         self.assertEqual(3, apartments[0]["rooms"])
         self.assertEqual("01/05/2026", apartments[0]["availableFrom"])
+
+
+class CEJFetchTests(unittest.TestCase):
+    def test_retries_cej_rate_limit_before_returning_items(self):
+        rate_limit_error = urllib.error.HTTPError(
+            watcher.API_URL,
+            429,
+            "Too Many Requests",
+            {},
+            None,
+        )
+        response_body = b'{"searchResponse": {"items": [{"id": "cej-1", "status": 1}]}}'
+
+        class SuccessfulResponse:
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, _exc_type, _exc, _traceback):
+                return False
+
+            def read(self):
+                return response_body
+
+        with patch("watcher.urllib.request.urlopen", side_effect=[rate_limit_error, SuccessfulResponse()]):
+            with patch("watcher.time.sleep") as mock_sleep:
+                apartments = watcher.fetch_cej_apartments(max_attempts=2, base_delay_seconds=1)
+
+        self.assertEqual([{"id": "cej-1", "status": 1}], apartments)
+        mock_sleep.assert_called_once_with(1)
+
+    @patch("watcher.fetch_sweet_homes_apartments", return_value=[])
+    @patch("watcher.fetch_propstep_apartments", return_value=[])
+    @patch("watcher.fetch_cwobel_apartments", return_value=[])
+    @patch("watcher.fetch_juliliving_apartments", return_value=[])
+    @patch("watcher.fetch_capitalbolig_apartments", return_value=[])
+    @patch("watcher.fetch_city_apartments", return_value=[])
+    @patch("watcher.fetch_cej_apartments", side_effect=watcher.WatcherError("CEJ API rate limited after 3 attempts."))
+    def test_fetch_apartments_skips_rate_limited_cej(
+        self,
+        _mock_fetch_cej,
+        _mock_fetch_city,
+        _mock_fetch_capital,
+        _mock_fetch_juli,
+        _mock_fetch_cwobel,
+        _mock_fetch_propstep,
+        _mock_fetch_sweet_homes,
+    ):
+        self.assertEqual([], watcher.fetch_apartments())
 
 
 class DiscordNotificationTests(unittest.TestCase):
