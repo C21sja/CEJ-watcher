@@ -20,7 +20,13 @@ SWEET_HOMES_LIST_URL = "https://sweet-homes.dk/lejebolig/"
 HEADERS = {
     "x-remix-response": "yes",
     "Accept": "*/*",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
+    "Accept-Language": "da-DK,da;q=0.9,en-US;q=0.8,en;q=0.7",
+    "Accept-Encoding": "identity",
+    "Connection": "keep-alive",
+    "Sec-Fetch-Dest": "empty",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Site": "same-origin",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
 }
 SEEN_IDS_FILE = "seen_ids.json"
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -122,8 +128,8 @@ def read_non_negative_int_env(name, default):
 
 RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 1)
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
-CEJ_MAX_ATTEMPTS = read_non_negative_int_env("CEJ_MAX_ATTEMPTS", 3)
-CEJ_RETRY_BASE_SECONDS = read_non_negative_int_env("CEJ_RETRY_BASE_SECONDS", 15)
+CEJ_MAX_ATTEMPTS = read_non_negative_int_env("CEJ_MAX_ATTEMPTS", 5)
+CEJ_RETRY_BASE_SECONDS = read_non_negative_int_env("CEJ_RETRY_BASE_SECONDS", 10)
 CEJ_MAX_PRICE = 18000
 CEJ_PRIMARY_POSTCODE_MIN = 1000
 CEJ_PRIMARY_POSTCODE_MAX = 2500
@@ -379,8 +385,11 @@ def fetch_url_text(url, accept="text/html,application/xhtml+xml,application/xml"
     req = urllib.request.Request(
         url,
         headers={
-            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
+            "User-Agent": HEADERS["User-Agent"],
             "Accept": accept,
+            "Accept-Language": HEADERS["Accept-Language"],
+            "Accept-Encoding": "identity",
+            "Connection": "keep-alive",
         },
     )
     with urllib.request.urlopen(req, timeout=30) as response:
@@ -401,9 +410,11 @@ def post_json(url, payload):
         data=data,
         method="POST",
         headers={
-            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
+            "User-Agent": HEADERS["User-Agent"],
             "Accept": "application/json,text/javascript,*/*",
+            "Accept-Language": HEADERS["Accept-Language"],
             "Content-Type": "application/json",
+            "Connection": "keep-alive",
         },
     )
     with urllib.request.urlopen(req, timeout=30) as response:
@@ -502,8 +513,11 @@ def calculate_cej_retry_delay(attempt, base_delay_seconds, retry_after_seconds=N
     return base_delay_seconds * (2 ** (attempt - 1))
 
 
-def is_cej_rate_limit_error(error):
-    return isinstance(error, CEJRateLimitError) or "rate limited" in str(error).lower()
+def is_cej_transient_error(error):
+    if isinstance(error, CEJRateLimitError):
+        return True
+    msg = str(error).lower()
+    return "rate limited" in msg or "503" in msg or "unavailable" in msg
 
 
 def fetch_cej_apartments(max_attempts=None, base_delay_seconds=None):
@@ -520,13 +534,16 @@ def fetch_cej_apartments(max_attempts=None, base_delay_seconds=None):
                 raw_data = response.read().decode("utf-8")
                 break
         except urllib.error.HTTPError as e:
-            if e.code == 429:
+            if e.code in (429, 503):
                 if attempt >= max_attempts:
-                    raise CEJRateLimitError(f"CEJ API rate limited after {max_attempts} attempts.") from e
+                    if e.code == 429:
+                        raise CEJRateLimitError(f"CEJ API rate limited after {max_attempts} attempts.") from e
+                    raise WatcherError(f"CEJ API unavailable (503) after {max_attempts} attempts.") from e
 
                 retry_after_seconds = parse_retry_after_seconds(e.headers)
                 sleep_for = calculate_cej_retry_delay(attempt, base_delay_seconds, retry_after_seconds)
-                print(f"CEJ rate-limited (attempt {attempt}/{max_attempts}), retrying in {sleep_for}s.")
+                reason = "rate-limited" if e.code == 429 else "unavailable (503)"
+                print(f"CEJ {reason} (attempt {attempt}/{max_attempts}), retrying in {sleep_for}s.")
                 time.sleep(sleep_for)
                 continue
             raise WatcherError(f"Error fetching CEJ API: {e}") from e
@@ -941,7 +958,7 @@ def fetch_apartments():
     try:
         all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
     except WatcherError as e:
-        if not is_cej_rate_limit_error(e):
+        if not is_cej_transient_error(e):
             raise
         print(f"Skipping CEJ listings for this run: {e}")
 
