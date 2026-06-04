@@ -478,10 +478,10 @@
   "propstep:69d4d877c1c12530c6c7564e": "Available",
   "propstep:69d4d87b7a8a3833bb2b4667": "Available",
   "propstep:69d4d8797a8a3833bb2b4614": "Available",
-  "propstep:68d3eb2ba8541d5070e85cbe": "Available",
-  "propstep:68d3eb2ba8541d5070e85c94": "Available",
+  "propstep:68d3eb2ba8541d5070e85cbe": "Reserved",
+  "propstep:68d3eb2ba8541d5070e85c94": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c98": "Available",
-  "propstep:68d3eb2ba8541d5070e85ca2": "Available",
+  "propstep:68d3eb2ba8541d5070e85ca2": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cac": "Available",
   "propstep:68d3eb2ba8541d5070e85cb6": "Available",
   "propstep:68d3eb2ba8541d5070e85c9a": "Available",
@@ -495,7 +495,7 @@
   "propstep:68d3eb2ba8541d5070e85cb2": "Available",
   "propstep:68d3eb2ba8541d5070e85cb4": "Available",
   "propstep:68d3eb2ba8541d5070e85cb8": "Available",
-  "propstep:68d3eb2ba8541d5070e85cbc": "Available",
+  "propstep:68d3eb2ba8541d5070e85cbc": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c96": "Available",
   "propstep:68d3eb2ba8541d5070e85c9c": "Available",
   "propstep:68d3eb2ba8541d5070e85ca6": "Available",
@@ -521,5 +521,6 @@
   "propstep:696a3c157bfa6a3e19841d16": "Available",
   "propstep:696a3abebf5b1f79d15a2bcf": "Available",
   "sweethomes:2224458": "Available",
-  "sweethomes:2215390": "Available"
+  "sweethomes:2215390": "Available",
+  "sweethomes:2224467": "Available"
 }
