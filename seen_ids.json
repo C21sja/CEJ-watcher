@@ -462,7 +462,7 @@
   "f9d562ae3fc74298ab96d0ebf2ca1c64": "Reserved",
   "89d3c1ace56947028c02084865061ca3": "Reserved",
   "propstep:6864327236d031023c68c67c": "Available",
-  "b54ed368bc6b44f19a1efe6f93ee84b6": "Available",
+  "b54ed368bc6b44f19a1efe6f93ee84b6": "Reserved",
   "5865bee7a9a34084b30e9c361939bb23": "Reserved",
   "sweethomes:2348307": "Available",
   "sweethomes:2349159": "Rented",
@@ -527,7 +527,9 @@
   "sweethomes:2215374": "Available",
   "sweethomes:2215370": "Available",
   "sweethomes:2215372": "Available",
-  "008533acebfb4a33b2400c0c8168afd5": "Available",
+  "008533acebfb4a33b2400c0c8168afd5": "Reserved",
   "177b468bde804c06b7af6453b7b31653": "Reserved",
-  "7f6c71e30a364346b86cf56dba72102f": "Available"
+  "7f6c71e30a364346b86cf56dba72102f": "Available",
+  "08910944a1514b91b44561c720f83501": "Available",
+  "2ac3cac975b7460094369174a45d176c": "Available"
 }
