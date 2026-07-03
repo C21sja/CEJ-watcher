@@ -477,7 +477,7 @@
   "propstep:67f64fc9bba3eb36eeb1c14c": "Reserved",
   "propstep:69d4d877c1c12530c6c7564e": "Available",
   "propstep:69d4d87b7a8a3833bb2b4667": "Available",
-  "propstep:69d4d8797a8a3833bb2b4614": "Available",
+  "propstep:69d4d8797a8a3833bb2b4614": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cbe": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c94": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c98": "Available",
@@ -568,5 +568,7 @@
   "propstep:682aee98e35abf6f399b2755": "Available",
   "propstep:682aee98e35abf6f399b2757": "Available",
   "f71591e20715809baadd8e73604591e3": "Reserved",
-  "propstep:686432775072bd262ca9a77a": "Available"
+  "propstep:686432775072bd262ca9a77a": "Available",
+  "b4c62f79c3624c988a09ca9e9a27083b": "Available",
+  "c91df371214942af8394802618aea875": "Available"
 }
