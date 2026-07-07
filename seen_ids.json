@@ -461,7 +461,7 @@
   "propstep:6a0ef3681b009350c1dea3e4": "Reserved",
   "f9d562ae3fc74298ab96d0ebf2ca1c64": "Reserved",
   "89d3c1ace56947028c02084865061ca3": "Reserved",
-  "propstep:6864327236d031023c68c67c": "Reserved",
+  "propstep:6864327236d031023c68c67c": "Available",
   "b54ed368bc6b44f19a1efe6f93ee84b6": "Reserved",
   "5865bee7a9a34084b30e9c361939bb23": "Reserved",
   "sweethomes:2348307": "Rented",
@@ -519,7 +519,7 @@
   "propstep:6a1fe6fabaa793591089554f": "Reserved",
   "sweethomes:2348328": "Available",
   "propstep:696a3c157bfa6a3e19841d16": "Reserved",
-  "propstep:696a3abebf5b1f79d15a2bcf": "Reserved",
+  "propstep:696a3abebf5b1f79d15a2bcf": "Available",
   "sweethomes:2224458": "Rented",
   "sweethomes:2215390": "Rented",
   "sweethomes:2224467": "Rented",
@@ -537,7 +537,7 @@
   "sweethomes:2352307": "Rented",
   "17c522efe1fb4deaa6d79920c76ce470": "Available",
   "cbb029e9a5cb8c6fb9fb75e8832197b9": "Reserved",
-  "1ee9e401db6da507fbb61e50f307f110": "Reserved",
+  "1ee9e401db6da507fbb61e50f307f110": "Available",
   "c4dd31b1a9e34207b5f74acdb6f4fa8d": "Reserved",
   "propstep:68d3eb29a8541d5070e85bec": "Reserved",
   "propstep:696a3c50bf5b1f79d15a555d": "Reserved",
@@ -569,7 +569,7 @@
   "propstep:682aee98e35abf6f399b2757": "Available",
   "f71591e20715809baadd8e73604591e3": "Reserved",
   "propstep:686432775072bd262ca9a77a": "Available",
-  "b4c62f79c3624c988a09ca9e9a27083b": "Available",
+  "b4c62f79c3624c988a09ca9e9a27083b": "Reserved",
   "c91df371214942af8394802618aea875": "Reserved",
   "propstep:67f64fc9bba3eb36eeb1c152": "Available",
   "propstep:64998d932d7acc357eb10bcb": "Available",
@@ -578,5 +578,6 @@
   "e7789636b4e8424bb3967d84675bfd2f": "Available",
   "propstep:6a47872cb257b622dc562e83": "Available",
   "propstep:66f13e4c35db520e6ce4f1fd": "Available",
-  "propstep:66f06a0987dbc9256816af81": "Available"
+  "propstep:66f06a0987dbc9256816af81": "Available",
+  "propstep:6a4cc1c7c2de2a709e740af1": "Available"
 }
