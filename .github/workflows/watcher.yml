@@ -2,16 +2,23 @@ name: CEJ Watcher
 
 on:
   schedule:
-    # Runs every 30 minutes
-    - cron: '*/30 * * * *'
+    # Triggered hourly. Each job runs continuously for ~70 minutes (see
+    # WATCHER_MAX_RUNTIME_SECONDS below) -- longer than this 60-minute
+    # interval -- so a fresh run is always queued by the time the previous one
+    # exits and, serialized by the `concurrency` group below, takes over
+    # immediately. That gives continuous coverage with no blind polling gaps
+    # and tolerates GitHub's occasional late/dropped scheduled triggers, since
+    # the currently-running job keeps polling until the next one starts.
+    #
+    # This replaces the previous "wake up every 30 minutes, poll once, exit"
+    # design, which was the root cause of missing fast-moving status changes
+    # (e.g. a listing going Available -> Reserved within minutes): see the
+    # adaptive-polling comments in watcher.py for the data behind this change.
+    - cron: '0 * * * *'
   # Allow manual triggering
   workflow_dispatch:
   push:
   pull_request:
-
-concurrency:
-  group: watcher
-  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -33,12 +40,25 @@ jobs:
         run: |
           python -m py_compile watcher.py
 
+      - name: Run unit tests
+        run: |
+          python -m unittest test_watcher -v
+
   run-watcher:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     needs: verify
     runs-on: ubuntu-latest
+    timeout-minutes: 75
     permissions:
       contents: write
+    concurrency:
+      # Serialize only the long-running poll job itself: at most one watcher
+      # active, with the next held pending so it takes over immediately at
+      # handoff (no overlap => no double-polling). Scoped to this job (rather
+      # than the whole workflow) so push/PR-triggered `verify` runs above
+      # still get fast CI feedback instead of queuing behind a ~70min poll job.
+      group: watcher-poll-loop
+      cancel-in-progress: false
 
     steps:
       - name: Checkout repository
@@ -55,7 +75,17 @@ jobs:
           DISCORD_MENTION_EVERYONE: ${{ vars.DISCORD_MENTION_EVERYONE || 'true' }}
           DISCORD_MENTION: ${{ vars.DISCORD_MENTION || '@user' }}
           DISCORD_MENTION_USER_ID: ${{ vars.DISCORD_MENTION_USER_ID }}
-          WATCHER_RUNS: 1
+          # 70min: longer than the 60min cron trigger above (continuous, gapless
+          # handoff) while exiting ~5min early to leave time to persist state.
+          WATCHER_MAX_RUNTIME_SECONDS: 4200
+          # Adaptive, Copenhagen-time-aware polling is ON by default (see
+          # watcher.py). CEJ, Propstep, Sweet Homes and City Apartment are
+          # polled every cycle at a tier-driven interval (fast on weekday
+          # business hours, slow overnight/weekends); Capital Bolig, Juli
+          # Living and C.W. Obel are polled on their own slower, independent
+          # cadence since they're heavier/slower to fetch. Tune via
+          # WATCHER_POLL_*_SECONDS, WATCHER_SLOW_SOURCE_INTERVAL_SECONDS, or
+          # disable entirely with WATCHER_ADAPTIVE_POLLING=false.
         run: |
           python watcher.py
 
@@ -66,7 +96,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           test -f seen_ids.json || echo "[]" > seen_ids.json
           git add seen_ids.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update seen IDs" && git push)
+          if git diff --staged --quiet; then
+            echo "No watcher state changes to commit."
+            exit 0
+          fi
+          git commit -m "Update seen IDs"
+          git pull --rebase --autostash origin "$GITHUB_REF_NAME"
+          git push origin "HEAD:$GITHUB_REF_NAME"
 
   notify-failure:
     if: ${{ always() && (needs.verify.result == 'failure' || needs.run-watcher.result == 'failure') }}

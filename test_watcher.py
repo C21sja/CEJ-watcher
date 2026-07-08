@@ -1,5 +1,6 @@
 import unittest
 import urllib.error
+from datetime import datetime, timezone
 from unittest.mock import patch
 
 import watcher
@@ -60,8 +61,10 @@ class GeneralFilterTests(unittest.TestCase):
 
 
 class RuntimeConfigTests(unittest.TestCase):
-    def test_default_run_count_avoids_continuous_polling(self):
-        self.assertEqual(1, watcher.RUN_COUNT)
+    def test_default_run_count_uses_continuous_adaptive_loop(self):
+        # 0 is the sentinel meaning "use run_adaptive_continuous_mode()" rather
+        # than the legacy fixed-count/fixed-interval single-shot mode.
+        self.assertEqual(0, watcher.RUN_COUNT)
 
 
 class PropstepTests(unittest.TestCase):
@@ -250,6 +253,198 @@ class DiscordNotificationTests(unittest.TestCase):
         price_field = next(field for field in embed["fields"] if field["name"] == "Price")
 
         self.assertEqual("Unknown", price_field["value"])
+
+
+class CopenhagenTimeTests(unittest.TestCase):
+    def test_winter_offset_is_utc_plus_one(self):
+        utc = datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc)
+        self.assertEqual(watcher.copenhagen_now(utc).hour, 13)
+
+    def test_summer_offset_is_utc_plus_two(self):
+        utc = datetime(2026, 7, 6, 12, 0, tzinfo=timezone.utc)
+        self.assertEqual(watcher.copenhagen_now(utc).hour, 14)
+
+    def test_dst_spring_forward_boundary(self):
+        # EU summer time begins 2026-03-29 at 01:00 UTC.
+        before = datetime(2026, 3, 29, 0, 30, tzinfo=timezone.utc)
+        after = datetime(2026, 3, 29, 1, 30, tzinfo=timezone.utc)
+        self.assertEqual(watcher.copenhagen_now(before).hour, 1)   # 00:30 + 1h (CET)
+        self.assertEqual(watcher.copenhagen_now(after).hour, 3)    # 01:30 + 2h (CEST)
+
+    def test_dst_fall_back_boundary(self):
+        # EU summer time ends 2026-10-25 at 01:00 UTC.
+        before = datetime(2026, 10, 25, 0, 30, tzinfo=timezone.utc)
+        after = datetime(2026, 10, 25, 1, 30, tzinfo=timezone.utc)
+        self.assertEqual(watcher.copenhagen_now(before).hour, 2)   # 00:30 + 2h (CEST)
+        self.assertEqual(watcher.copenhagen_now(after).hour, 2)    # 01:30 + 1h (CET)
+
+
+class ClassifyPeriodTests(unittest.TestCase):
+    @staticmethod
+    def _monday(hour):
+        return datetime(2026, 7, 6, hour, 0)  # a Monday
+
+    @staticmethod
+    def _saturday(hour):
+        return datetime(2026, 7, 11, hour, 0)  # a Saturday
+
+    def test_weekday_hot_window_matches_observed_cej_peak(self):
+        # Live CEJ `lastPublishedDate` histogram (2026-07-08 snapshot) showed
+        # ~62% of publish/status-change events landing 08:00-13:00 CPH.
+        for hour in (8, 10, 12):
+            self.assertEqual(watcher.classify_period(self._monday(hour)), "HOT")
+
+    def test_weekday_warm_window_covers_afternoon_tail_and_ramp_up(self):
+        # Covers both real Discord detections (Thu 16:40, Fri 15:52 CPH).
+        for hour in (7, 13, 15, 16, 17):
+            self.assertEqual(watcher.classify_period(self._monday(hour)), "WARM")
+
+    def test_weekday_cool_and_cold_windows(self):
+        for hour in (18, 20, 21):
+            self.assertEqual(watcher.classify_period(self._monday(hour)), "COOL")
+        for hour in (0, 3, 6, 22, 23):
+            self.assertEqual(watcher.classify_period(self._monday(hour)), "COLD")
+
+    def test_weekend_is_cool_by_day_cold_by_night(self):
+        self.assertEqual(watcher.classify_period(self._saturday(12)), "COOL")
+        self.assertEqual(watcher.classify_period(self._saturday(7)), "COLD")
+        self.assertEqual(watcher.classify_period(self._saturday(23)), "COLD")
+
+
+class PollIntervalTests(unittest.TestCase):
+    def test_hot_window_uses_hot_interval(self):
+        monday_peak = datetime(2026, 7, 6, 10, 0)
+        self.assertEqual(
+            watcher.get_poll_interval_seconds(monday_peak),
+            watcher.POLL_INTERVALS["HOT"],
+        )
+
+    def test_night_uses_cold_interval(self):
+        monday_night = datetime(2026, 7, 6, 3, 0)
+        self.assertEqual(
+            watcher.get_poll_interval_seconds(monday_night),
+            watcher.POLL_INTERVALS["COLD"],
+        )
+
+    def test_intervals_speed_up_with_activity(self):
+        i = watcher.POLL_INTERVALS
+        self.assertLessEqual(i["HOT"], i["WARM"])
+        self.assertLessEqual(i["WARM"], i["COOL"])
+        self.assertLessEqual(i["COOL"], i["COLD"])
+
+    def test_adaptive_disabled_falls_back_to_constant(self):
+        original = watcher.ADAPTIVE_POLLING
+        watcher.ADAPTIVE_POLLING = False
+        try:
+            monday_peak = datetime(2026, 7, 6, 10, 0)
+            self.assertEqual(
+                watcher.get_poll_interval_seconds(monday_peak),
+                watcher.SLEEP_SECONDS,
+            )
+        finally:
+            watcher.ADAPTIVE_POLLING = original
+
+    def test_tiers_never_faster_than_ten_seconds(self):
+        for interval in watcher.POLL_INTERVALS.values():
+            self.assertGreaterEqual(interval, 10)
+
+
+class CityApartmentAreaFilterTests(unittest.TestCase):
+    def test_accepts_koebenhavn_k_by_postcode(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Gothersgade 1 Post nr. 1123"))
+
+    def test_accepts_vesterbro_by_postcode(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Istedgade 5 Post nr. 1650"))
+
+    def test_accepts_frederiksberg_by_postcode(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Falkoner Alle 1 Post nr. 2000"))
+
+    def test_accepts_oesterbro_by_postcode(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Oesterbrogade 1 Post nr. 2100"))
+
+    def test_accepts_amager_by_postcode(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Amagerbrogade 1 Post nr. 2300"))
+        self.assertTrue(watcher.is_city_apartment_target_area("Postnummer 2770 Kastrup"))
+
+    def test_accepts_by_keyword_when_postcode_missing(self):
+        self.assertTrue(watcher.is_city_apartment_target_area("Dejlig lejlighed paa Vesterbro"))
+
+    def test_rejects_non_target_areas(self):
+        self.assertFalse(watcher.is_city_apartment_target_area("Saxovej 75, Post nr. 5210 Odense"))
+        self.assertFalse(watcher.is_city_apartment_target_area("Kildevej 12, Post nr. 2600 Glostrup"))
+        self.assertFalse(watcher.is_city_apartment_target_area("Bronzebakken 66, Post nr. 3200 Helsinge"))
+        self.assertFalse(watcher.is_city_apartment_target_area("Noerrebrogade 1, Post nr. 2200 Koebenhavn N"))
+
+
+class CityApartmentParsingTests(unittest.TestCase):
+    # A trimmed-down fixture mirroring the real page structure: an outer
+    # non-listing <article> (the WordPress page shell) wrapping the whole
+    # body, followed by sibling <article class="... cityapartments ...">
+    # listing cards. A naive `<article>...</article>` regex swallows the
+    # first real card into the page-shell match; the parser must not do that.
+    SAMPLE_HTML = """
+    <article class="post-1 page type-page ast-article-single">
+      <p>Intro text about Copenhagen apartments.</p>
+      <article id="post-1" class="elementor-post cityapartments type-cityapartments category-koebenhavn-k">
+        <h3><a href="https://cityapartment.dk/da/cityapartments/target-listing/">Gothersgade 1</a></h3>
+        <p>Post nr. 1123</p>
+        <p>65 m²</p>
+        <p>12500 DKK / pr. maaned</p>
+      </article>
+      <article id="post-2" class="elementor-post cityapartments type-cityapartments category-glostrup-da">
+        <h3><a href="https://cityapartment.dk/da/cityapartments/other-listing/">Kildevej 12</a></h3>
+        <p>Post nr. 2600</p>
+        <p>95 m²</p>
+        <p>14250 DKK / pr. maaned</p>
+      </article>
+      <p>Footer content about the neighborhood.</p>
+    </article>
+    """
+
+    def test_only_returns_cards_in_target_areas(self):
+        apartments = watcher.parse_city_apartment_listings(self.SAMPLE_HTML)
+
+        self.assertEqual(1, len(apartments))
+        apt = apartments[0]
+        self.assertEqual("Gothersgade 1", apt["name"])
+        self.assertEqual("https://cityapartment.dk/da/cityapartments/target-listing/", apt["url"])
+        self.assertEqual("12500", apt["price"]["amount"])
+        self.assertEqual("City Apartment", apt["source"])
+
+    def test_headers_include_accept_language_to_avoid_waf_block(self):
+        # cityapartment.dk returns HTTP 454 for requests missing Accept-Language
+        # (confirmed empirically against the live site).
+        self.assertIn("Accept-Language", watcher.CITY_APARTMENT_HEADERS)
+        self.assertTrue(watcher.CITY_APARTMENT_HEADERS["Accept-Language"])
+
+
+class FastSlowSourceSplitTests(unittest.TestCase):
+    def test_fast_and_slow_source_names_do_not_overlap(self):
+        self.assertEqual(set(), watcher.FAST_SOURCE_NAMES & watcher.SLOW_SOURCE_NAMES)
+
+    @patch("watcher.fetch_sweet_homes_apartments", return_value=[{"id": "sh"}])
+    @patch("watcher.fetch_propstep_apartments", return_value=[{"id": "ps"}])
+    @patch("watcher.fetch_city_apartments", return_value=[{"id": "ca"}])
+    @patch("watcher.fetch_cej_apartments", return_value=[{"id": "cej", "status": "available"}])
+    def test_fetch_fast_source_apartments_covers_all_fast_sources(
+        self, _mock_cej, _mock_city, _mock_propstep, _mock_sweethomes
+    ):
+        items = watcher.fetch_fast_source_apartments()
+        ids = {item["id"] for item in items}
+        self.assertEqual({"cej", "ca", "ps", "sh"}, ids)
+
+    @patch("watcher.fetch_cwobel_apartments", return_value=[{"id": "cwobel"}])
+    @patch("watcher.fetch_juliliving_apartments", return_value=[{"id": "juli"}])
+    @patch("watcher.fetch_capitalbolig_apartments", return_value=[{"id": "capital"}])
+    def test_fetch_slow_source_apartments_covers_all_slow_sources(
+        self, _mock_capital, _mock_juli, _mock_cwobel
+    ):
+        items = watcher.fetch_slow_source_apartments()
+        ids = {item["id"] for item in items}
+        self.assertEqual({"capital", "juli", "cwobel"}, ids)
+
+    def test_slow_source_interval_is_much_slower_than_hot_tier(self):
+        self.assertGreater(watcher.SLOW_SOURCE_INTERVAL_SECONDS, watcher.POLL_INTERVALS["HOT"])
 
 
 if __name__ == "__main__":

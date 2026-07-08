@@ -6,7 +6,7 @@ import time
 import unicodedata
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from html import unescape
 
 # Configurations
@@ -27,6 +27,15 @@ HEADERS = {
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Site": "same-origin",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+}
+# cityapartment.dk's WAF returns HTTP 454 for requests missing Accept-Language
+# (verified empirically: identical request with Accept-Language present -> 200,
+# without it -> 454 every time). Keep a dedicated headers dict so this stays
+# correct even if the shared HEADERS dict changes shape.
+CITY_APARTMENT_HEADERS = {
+    "User-Agent": HEADERS["User-Agent"],
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": HEADERS["Accept-Language"],
 }
 SEEN_IDS_FILE = "seen_ids.json"
 WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
@@ -126,8 +135,15 @@ def read_non_negative_int_env(name, default):
         return default
 
 
-RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 1)
+# Fixed interval used only when adaptive polling is disabled (WATCHER_ADAPTIVE_POLLING=false)
+# or as a legacy single-shot mode when WATCHER_RUNS is set to a positive number.
 SLEEP_SECONDS = read_non_negative_int_env("WATCHER_SLEEP_SECONDS", 60)
+
+# Legacy single-shot mode: if set to a positive number, the watcher runs exactly
+# this many polls (using SLEEP_SECONDS between them) and exits, instead of the
+# default continuous adaptive loop. 0 (default) means "use the continuous loop".
+RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 0)
+
 CEJ_MAX_ATTEMPTS = read_non_negative_int_env("CEJ_MAX_ATTEMPTS", 5)
 CEJ_RETRY_BASE_SECONDS = read_non_negative_int_env("CEJ_RETRY_BASE_SECONDS", 10)
 CEJ_MAX_PRICE = 18000
@@ -145,6 +161,134 @@ CEJ_LOCATION_KEYWORDS = [
     "osterbro",
     "islands brygge",
 ]
+
+# City Apartment listings should only trigger for these five Copenhagen districts.
+# Postal-code ranges follow the standard Danish district mapping (same convention
+# used elsewhere in this file for CEJ/Capital Bolig/Juli Living/C.W. Obel).
+CITY_APARTMENT_TARGET_POSTCODE_RANGES = [
+    (1000, 1499),  # Koebenhavn K
+    (1500, 1799),  # Koebenhavn V / Vesterbro
+    (1800, 2000),  # Frederiksberg C / Frederiksberg
+    (2100, 2100),  # Koebenhavn OE / Osterbro
+    (2300, 2300),  # Koebenhavn S / Amager
+    (2450, 2450),  # Koebenhavn SV / Amager
+    (2770, 2770),  # Kastrup / Amager
+]
+CITY_APARTMENT_TARGET_KEYWORDS = [
+    "amager",
+    "kobenhavn k",
+    "frederiksberg",
+    "vesterbro",
+    "osterbro",
+]
+
+# --- Adaptive polling -------------------------------------------------------
+# CEJ's own API exposes `lastPublishedDate` (set on every publish AND every
+# status transition, e.g. available -> reserved). A live snapshot of the
+# current CEJ feed (fetched 2026-07-08) showed those timestamps concentrated
+# almost entirely on weekday business hours in Copenhagen local time, zero on
+# Sat/Sun:
+#   08:00-13:00 CPH: ~62% of events (morning/midday peak)
+#   13:00-17:00 CPH: ~24% of events (afternoon tail)
+#   before 08:00 or after 17:00: ~14%, none on weekends
+# This matches the two real Discord detections we have on record (Thu 16:40 and
+# Fri 15:52 CPH, both in the afternoon-tail window) and the weaker signal from
+# `seen_ids.json` commit timestamps (peak ~12:00-15:00 CPH, almost all
+# Mon-Fri). CEJ's API is served directly from their own origin (Fly.io) with
+# no CDN in front of it -- repeated 7-8s-apart requests returned identical
+# `Via: fly.io`/no-Age/no-ETag responses and ~0.8-1.1s origin latency every
+# time, so there is no cache TTL to synchronize against (unlike Kereby's
+# CloudFront-fronted feed). CEJ has rate-limited this watcher before, so the
+# HOT interval below is deliberately conservative rather than as aggressive as
+# Kereby's cache-synced polling.
+ADAPTIVE_POLLING = os.environ.get("WATCHER_ADAPTIVE_POLLING", "true").strip().lower() != "false"
+
+POLL_INTERVALS = {
+    "HOT": read_non_negative_int_env("WATCHER_POLL_HOT_SECONDS", 45),
+    "WARM": read_non_negative_int_env("WATCHER_POLL_WARM_SECONDS", 90),
+    "COOL": read_non_negative_int_env("WATCHER_POLL_COOL_SECONDS", 240),
+    "COLD": read_non_negative_int_env("WATCHER_POLL_COLD_SECONDS", 900),
+}
+# Never allow a tier to be tuned faster than this, to stay polite to CEJ's origin.
+_MIN_POLL_INTERVAL_SECONDS = 10
+for _tier_name in POLL_INTERVALS:
+    if POLL_INTERVALS[_tier_name] < _MIN_POLL_INTERVAL_SECONDS:
+        POLL_INTERVALS[_tier_name] = _MIN_POLL_INTERVAL_SECONDS
+
+# Copenhagen-local hour windows -> tier (start inclusive, end exclusive).
+# Any hour not covered here falls through to COLD.
+WEEKDAY_TIER_WINDOWS = [
+    (8, 13, "HOT"),    # core publish/status-change window (~62% of observed events)
+    (7, 8, "WARM"),    # morning ramp-up
+    (13, 18, "WARM"),  # afternoon tail (covers both real Discord detections)
+    (18, 22, "COOL"),
+]
+WEEKEND_TIER_WINDOWS = [
+    (9, 20, "COOL"),   # rare, but keep a light watch (weak prior from git history)
+]
+
+# Sources that are cheap to fetch (single request or a handful) and are the
+# ones this cadence redesign targets (CEJ itself, plus the two "sibling"
+# sources bundled into this Mixed Watcher, plus the new City Apartment
+# watcher). These are fetched on every poll at the tier-driven interval below.
+FAST_SOURCE_NAMES = {"CEJ", "Propstep", "Sweet Homes", "City Apartment"}
+# Sources that are either slow (Juli Living: ~6-7s per fetch) or amplify into
+# many extra HTTP requests per poll (Capital Bolig fetches one detail page per
+# matching listing). Polling these as fast as CEJ would multiply load on sites
+# nobody has reported timing problems with, so they get their own, much slower,
+# independent cadence instead of inheriting CEJ's fast tier.
+SLOW_SOURCE_NAMES = {"Capital Bolig", "Juli Living", "C.W. Obel"}
+SLOW_SOURCE_INTERVAL_SECONDS = max(60, read_non_negative_int_env("WATCHER_SLOW_SOURCE_INTERVAL_SECONDS", 600))
+
+MAX_RUNTIME_SECONDS = max(60, read_non_negative_int_env("WATCHER_MAX_RUNTIME_SECONDS", 70 * 60))
+EXIT_BUFFER_SECONDS = 60
+
+
+def _last_sunday_0100_utc(year, month):
+    """01:00 UTC on the last Sunday of `month` -- the EU DST switch instant."""
+    d = datetime(year, month, 31, 1, 0, 0, tzinfo=timezone.utc)
+    while d.weekday() != 6:  # 6 == Sunday
+        d -= timedelta(days=1)
+    return d
+
+
+def copenhagen_now(utc_now=None):
+    """Current Copenhagen wall-clock time as a naive datetime.
+
+    Dependency-free DST via the EU rule (CET = UTC+1, CEST = UTC+2; summer time
+    from the last Sunday of March 01:00 UTC to the last Sunday of October
+    01:00 UTC). Avoids zoneinfo/tzdata so the watcher stays zero-dependency
+    everywhere (including minimal GitHub Actions runners).
+    """
+    if utc_now is None:
+        utc_now = datetime.now(timezone.utc)
+    dst_start = _last_sunday_0100_utc(utc_now.year, 3)
+    dst_end = _last_sunday_0100_utc(utc_now.year, 10)
+    offset = 2 if dst_start <= utc_now < dst_end else 1
+    return (utc_now + timedelta(hours=offset)).replace(tzinfo=None)
+
+
+def classify_period(local_dt):
+    """Map a Copenhagen-local datetime to an activity tier name."""
+    windows = WEEKEND_TIER_WINDOWS if local_dt.weekday() >= 5 else WEEKDAY_TIER_WINDOWS
+    hour = local_dt.hour
+    for start, end, tier in windows:
+        if start <= hour < end:
+            return tier
+    return "COLD"
+
+
+def get_poll_interval_seconds(local_dt=None):
+    """Seconds to sleep before the next fast-source poll.
+
+    Falls back to the flat SLEEP_SECONDS when adaptive polling is disabled.
+    """
+    if not ADAPTIVE_POLLING:
+        return SLEEP_SECONDS
+    if local_dt is None:
+        local_dt = copenhagen_now()
+    tier = classify_period(local_dt)
+    return POLL_INTERVALS[tier]
 STATUS_LABELS = {
     1: "Available",
     2: "Reserved",
@@ -567,14 +711,26 @@ def fetch_cej_apartments(max_attempts=None, base_delay_seconds=None):
     return items
 
 
+def is_city_apartment_target_area(text):
+    """True if `text` mentions one of the five requested Copenhagen districts
+    (Amager, Koebenhavn K, Frederiksberg, Vesterbro, Osterbro), matched either
+    by postal code or by district name (both normalized, ASCII, lowercase)."""
+    normalized = normalize_search_text(text)
+
+    post_code = extract_postal_code(normalized)
+    if post_code is not None:
+        for low, high in CITY_APARTMENT_TARGET_POSTCODE_RANGES:
+            if low <= post_code <= high:
+                return True
+
+    return any(keyword in normalized for keyword in CITY_APARTMENT_TARGET_KEYWORDS)
+
+
 def fetch_city_apartments():
     print(f"[{datetime.now().isoformat()}] Fetching City Apartment...")
     req = urllib.request.Request(
         "https://cityapartment.dk/da/lejeboliger-koebenhavn/",
-        headers={
-            "User-Agent": HEADERS.get("User-Agent", "Mozilla/5.0"),
-            "Accept": "text/html,application/xhtml+xml,application/xml"
-        }
+        headers=CITY_APARTMENT_HEADERS,
     )
     try:
         with urllib.request.urlopen(req, timeout=30) as response:
@@ -586,15 +742,27 @@ def fetch_city_apartments():
         print(f"Error fetching City Apartment: {e}")
         return []
 
+    return parse_city_apartment_listings(html)
+
+
+def parse_city_apartment_listings(html):
     apartments = []
-    articles = re.findall(r'<article[^>]*>(.*?)</article>', html, re.DOTALL | re.IGNORECASE)
-    
+    # Scope to the actual listing cards ("cityapartments" custom post type).
+    # The page also wraps its whole body in an unrelated outer <article> (the
+    # WordPress page shell), which a naive `<article>...</article>` regex would
+    # incorrectly treat as the first "listing", swallowing real cards into it.
+    articles = re.findall(
+        r'<article[^>]*class="[^"]*\bcityapartments\b[^"]*"[^>]*>(.*?)</article>',
+        html,
+        re.DOTALL | re.IGNORECASE,
+    )
+
     for article in articles:
         title_match = re.search(r'<h[234][^>]*>(.*?)</h[234]>', article, re.DOTALL | re.IGNORECASE)
         if not title_match:
             continue
         title = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
-        
+
         if "Lejeboliger" in title or "Søgeresultater" in title:
             continue
 
@@ -604,21 +772,16 @@ def fetch_city_apartments():
             if h.startswith("http") and h != "#":
                 link = h
                 break
-        
+
         if not link:
             continue
 
         text = re.sub(r'<[^>]+>', ' ', article)
         text = re.sub(r'\s+', ' ', text).strip()
-        
-        if "odense" in title.lower() or "odense" in text.lower():
+
+        if not is_city_apartment_target_area(f"{title} {text}"):
             continue
-        post_match = re.search(r'Post nr\. (\d{4})', text, re.IGNORECASE)
-        if post_match:
-            post_code = int(post_match.group(1))
-            if post_code < 1000 or post_code >= 4000:
-                continue
-        
+
         price_match = re.search(r'([\d\.]+)\s*DK', text)
         price = price_match.group(1).replace('.', '') if price_match else "Unknown"
 
@@ -632,7 +795,7 @@ def fetch_city_apartments():
             "url": link,
             "source": "City Apartment"
         })
-        
+
     return apartments
 
 
@@ -951,10 +1114,13 @@ def fetch_sweet_homes_apartments():
     return apartments
 
 
-def fetch_apartments():
+def fetch_fast_source_apartments():
+    """Fetch the cheap-to-poll sources: CEJ itself, plus the sibling sources
+    bundled into this Mixed Watcher that are similarly cheap (a single request
+    or a small handful) -- Propstep, Sweet Homes, and City Apartment. These are
+    fetched on every adaptive-polling cycle."""
     all_items = []
-    
-    # CEJ properties
+
     try:
         all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
     except WatcherError as e:
@@ -962,63 +1128,73 @@ def fetch_apartments():
             raise
         print(f"Skipping CEJ listings for this run: {e}")
 
-    # City Apartment properties
     try:
         all_items.extend(fetch_city_apartments())
     except Exception as e:
         print(f"Error parsing City Apartment listings: {e}")
 
-    # Capital Bolig properties (København V + Frederiksberg)
-    try:
-        all_items.extend(fetch_capitalbolig_apartments())
-    except Exception as e:
-        print(f"Error parsing Capital Bolig listings: {e}")
-
-    # Juli Living properties (København K)
-    try:
-        all_items.extend(fetch_juliliving_apartments())
-    except Exception as e:
-        print(f"Error parsing Juli Living listings: {e}")
-
-    # C.W. Obel properties (Islands Brygge)
-    try:
-        all_items.extend(fetch_cwobel_apartments())
-    except Exception as e:
-        print(f"Error parsing C.W. Obel listings: {e}")
-
-    # Propstep properties (CEJ-equivalent location + price filter)
     try:
         all_items.extend(fetch_propstep_apartments())
     except Exception as e:
         print(f"Error parsing Propstep listings: {e}")
 
-    # Sweet Homes properties (CEJ-equivalent location + price filter)
     try:
         all_items.extend(fetch_sweet_homes_apartments())
     except Exception as e:
         print(f"Error parsing Sweet Homes listings: {e}")
-        
+
     return all_items
 
 
-def run_check():
-    seen_states = load_seen_states()
-    apartments = fetch_apartments()
+def fetch_slow_source_apartments():
+    """Fetch the sources that are either slow (Juli Living) or amplify into
+    many extra HTTP requests per poll (Capital Bolig fetches one detail page
+    per matching listing). Polled on a much slower, independent cadence."""
+    all_items = []
 
-    print(f"Found {len(apartments)} total apartments in the response.")
+    try:
+        all_items.extend(fetch_capitalbolig_apartments())
+    except Exception as e:
+        print(f"Error parsing Capital Bolig listings: {e}")
+
+    try:
+        all_items.extend(fetch_juliliving_apartments())
+    except Exception as e:
+        print(f"Error parsing Juli Living listings: {e}")
+
+    try:
+        all_items.extend(fetch_cwobel_apartments())
+    except Exception as e:
+        print(f"Error parsing C.W. Obel listings: {e}")
+
+    return all_items
+
+
+def fetch_apartments():
+    """Fetch every source in one shot (fast + slow). Used by the legacy
+    single-shot mode (WATCHER_RUNS > 0) and by tests; the continuous adaptive
+    loop in main() calls fetch_fast_source_apartments()/fetch_slow_source_apartments()
+    independently instead so the two groups can run on different cadences."""
+    return fetch_fast_source_apartments() + fetch_slow_source_apartments()
+
+
+def process_apartments(apartments, seen_states):
+    """Evaluate a batch of fetched listings against seen_states, sending
+    Discord notifications for new listings or status changes. Returns
+    (sent_notifications, notification_failures)."""
     sent_notifications = 0
     notification_failures = 0
 
     for apt in apartments:
         if not isinstance(apt, dict):
-            raise WatcherError("CEJ API returned apartment items in an unexpected format.")
+            raise WatcherError("Apartment source returned an item in an unexpected format.")
 
         if not matches_general_listing_filters(apt):
             continue
 
         apt_id = apt.get("id")
         status = apt.get("status")
-        
+
         if not apt_id:
             continue
 
@@ -1034,7 +1210,7 @@ def run_check():
         if previous_status is None or previous_status != status:
             reason = "New apartment found" if previous_status is None else f"Status changed ({previous_status} -> {status})"
             print(f"{reason}: {safe_console_text(apt.get('name'))} ({apt_id})")
-            
+
             if send_discord_notification(apt):
                 seen_states[apt_id] = status
                 save_seen_states(seen_states)
@@ -1042,17 +1218,24 @@ def run_check():
             else:
                 notification_failures += 1
 
+    return sent_notifications, notification_failures
+
+
+def run_check():
+    """Single-shot check across every source (legacy WATCHER_RUNS mode)."""
+    seen_states = load_seen_states()
+    apartments = fetch_apartments()
+
+    print(f"Found {len(apartments)} total apartments in the response.")
+    _sent, notification_failures = process_apartments(apartments, seen_states)
+
     if notification_failures:
         raise WatcherError(f"Failed to send {notification_failures} Discord notification(s).")
-    if sent_notifications == 0:
-        print("No new unseen apartments found in this check.")
 
 
-def main():
-    if RUN_COUNT == 0:
-        print("WATCHER_RUNS=0, nothing to do.")
-        return
-
+def run_legacy_fixed_interval_mode():
+    """Legacy behavior: a fixed number of polls at a fixed interval, all
+    sources every time. Only used when WATCHER_RUNS is explicitly set > 0."""
     for run_number in range(1, RUN_COUNT + 1):
         print(f"--- Starting Run {run_number} ---")
         run_check()
@@ -1062,6 +1245,70 @@ def main():
             time.sleep(SLEEP_SECONDS)
 
     print("\nWatcher finished successfully.")
+
+
+def run_adaptive_continuous_mode():
+    """Continuous loop: fast sources (CEJ, Propstep, Sweet Homes, City
+    Apartment) are polled every cycle at a Copenhagen-time-aware adaptive
+    interval; slow/heavy sources (Capital Bolig, Juli Living, C.W. Obel) are
+    polled on their own, much slower, independent cadence. Runs until
+    MAX_RUNTIME_SECONDS is reached (leaving EXIT_BUFFER_SECONDS to persist
+    state), then exits cleanly so the next scheduled job can take over."""
+    seen_states = load_seen_states()
+
+    start_time = time.monotonic()
+    deadline = start_time + MAX_RUNTIME_SECONDS - EXIT_BUFFER_SECONDS
+    next_slow_fetch_monotonic = start_time  # fetch slow sources on the very first cycle
+    run_num = 0
+    total_notification_failures = 0
+
+    while True:
+        run_num += 1
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            print(f"Deadline reached after {run_num - 1} polls. Exiting cleanly.")
+            break
+
+        local_now = copenhagen_now()
+        tier = classify_period(local_now) if ADAPTIVE_POLLING else "FIXED"
+        print(f"--- Poll {run_num} [{tier}] - CPH {local_now.strftime('%a %H:%M:%S')} - {remaining / 60:.1f}min remaining ---")
+
+        apartments = fetch_fast_source_apartments()
+
+        fetch_slow_now = time.monotonic() >= next_slow_fetch_monotonic
+        if fetch_slow_now:
+            apartments += fetch_slow_source_apartments()
+            next_slow_fetch_monotonic = time.monotonic() + SLOW_SOURCE_INTERVAL_SECONDS
+
+        print(f"Fetched {len(apartments)} apartments this cycle (slow sources included: {fetch_slow_now}).")
+        sent, failures = process_apartments(apartments, seen_states)
+        total_notification_failures += failures
+        if sent == 0 and failures == 0:
+            print("No new unseen apartments found in this cycle.")
+
+        remaining = deadline - time.monotonic()
+        interval = get_poll_interval_seconds(local_now)
+        if remaining <= interval:
+            print(f"Not enough time for another cycle ({remaining:.0f}s left, next poll would be in {interval}s). Exiting cleanly.")
+            break
+
+        print(f"Sleeping {interval}s (tier {tier}).")
+        time.sleep(interval)
+
+    total_elapsed = time.monotonic() - start_time
+    print(f"Watcher finished: {run_num} polls over {total_elapsed / 60:.1f} minutes.")
+
+    if total_notification_failures:
+        raise WatcherError(f"Failed to send {total_notification_failures} Discord notification(s) across the run.")
+
+
+def main():
+    if RUN_COUNT > 0:
+        print(f"WATCHER_RUNS={RUN_COUNT} set: using legacy fixed-interval single-shot mode.")
+        run_legacy_fixed_interval_mode()
+        return
+
+    run_adaptive_continuous_mode()
 
 
 if __name__ == "__main__":
