@@ -657,6 +657,17 @@ def is_city_apartment_target_area(text):
     return is_preferred_postcode(extract_postcode(text))
 
 
+def _extract_city_apartment_postcode(text):
+    postcodes = {
+        int(code)
+        for code in re.findall(
+            r"\b(?:postnummer|post\s+nr)\s+(\d{4})\b",
+            normalize_text(text),
+        )
+    }
+    return next(iter(postcodes)) if len(postcodes) == 1 else None
+
+
 def fetch_city_apartments():
     print(f"[{datetime.now().isoformat()}] Fetching City Apartment...")
     req = urllib.request.Request(
@@ -710,10 +721,9 @@ def parse_city_apartment_listings(html):
         text = re.sub(r'<[^>]+>', ' ', article)
         text = re.sub(r'\s+', ' ', text).strip()
 
-        listing_text = f"{title} {text}"
-        if not is_city_apartment_target_area(listing_text):
+        post_code = _extract_city_apartment_postcode(text)
+        if not is_preferred_postcode(post_code):
             continue
-        post_code = extract_postcode(listing_text)
 
         price_match = re.search(r'([\d\.]+)\s*DK', text)
         price = price_match.group(1).replace('.', '') if price_match else "Unknown"
@@ -723,7 +733,7 @@ def parse_city_apartment_listings(html):
             "status": "Available",
             "name": title,
             "price": {"amount": price},
-            "location": {"formatted": f"{title}, {post_code}"},
+            "location": {"formatted": f"Post nr. {post_code}"},
             "availableFrom": "See link for info",
             "url": link,
             "source": "City Apartment"

@@ -74,6 +74,19 @@ class HousingPolicyTests(unittest.TestCase):
         )
         self.assertTrue(listing_matches_policy(listing))
 
+    def test_arbitrary_capitalized_title_number_is_not_postcode_context(self):
+        listing = self._listing(
+            name="Historisk, 1800 Ejendom",
+            location="Brøndby",
+        )
+        self.assertFalse(listing_matches_policy(listing))
+
+    def test_labeled_name_postcode_is_valid_fallback_context(self):
+        for name in ("Lejlighed Post nr. 2200", "Lejlighed postnummer 2200"):
+            with self.subTest(name=name):
+                listing = self._listing(name=name, location="København N")
+                self.assertTrue(listing_matches_policy(listing))
+
     def test_parses_danish_amounts_and_postcodes(self):
         self.assertEqual(17500, extract_amount("17.500,- kr."))
         self.assertEqual(2799999, extract_amount("2.799.999 kr."))
@@ -87,6 +100,26 @@ class HousingPolicyTests(unittest.TestCase):
     def test_danish_decimal_rent_respects_inclusive_boundary(self):
         self.assertTrue(listing_matches_policy(self._listing(amount="18.000,00 kr.")))
         self.assertFalse(listing_matches_policy(self._listing(amount="18.000,01 kr.")))
+
+    def test_numeric_float_amounts_preserve_fractional_value(self):
+        self.assertEqual(18000, extract_amount(18000.0))
+        self.assertEqual(18000.01, extract_amount(18000.01))
+
+    def test_numeric_and_text_decimal_prices_have_same_boundary_result(self):
+        self.assertFalse(listing_matches_policy(self._listing(amount=18000.01)))
+        self.assertFalse(listing_matches_policy(self._listing(amount="18.000,01 kr.")))
+
+    def test_nonfinite_numeric_amounts_fail_closed(self):
+        for amount in (float("nan"), float("inf"), float("-inf")):
+            with self.subTest(amount=amount):
+                try:
+                    parsed = extract_amount(amount)
+                    matches = listing_matches_policy(self._listing(amount=amount))
+                except (OverflowError, ValueError) as exc:
+                    self.fail(f"non-finite amount raised {type(exc).__name__}")
+
+                self.assertIsNone(parsed)
+                self.assertFalse(matches)
 
     def test_amount_rejects_boolean_and_missing_values(self):
         self.assertIsNone(extract_amount(True))

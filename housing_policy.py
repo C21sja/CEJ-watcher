@@ -1,3 +1,4 @@
+import math
 import re
 import unicodedata
 
@@ -75,8 +76,12 @@ def normalize_text(value):
 def extract_amount(value):
     if isinstance(value, bool) or value is None:
         return None
-    if isinstance(value, (int, float)):
-        return int(value)
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            return None
+        return int(value) if value.is_integer() else value
 
     match = re.search(r"(-?)\s*(\d[\d.\s,]*)", str(value))
     if not match:
@@ -110,16 +115,21 @@ def _extract_postcodes(value):
 
 def _extract_contextual_name_postcodes(value):
     text = str(value or "")
+    normalized = normalize_text(text)
     postcodes = {
         int(code)
-        for code in re.findall(r",\s*(\d{4})\s+(?=[A-ZÆØÅ])", text)
+        for code in re.findall(
+            r"\b(?:postnummer|post\s+nr|postcode)\s+(\d{4})\b",
+            normalized,
+        )
     }
-    normalized = normalize_text(text)
-    for pattern in (
-        r"\b(?:postnummer|post\s+nr|postcode)\s+(\d{4})\b",
-        r"\b(\d{4})\s+(?:kobenhavn|koebenhavn|frederiksberg)\b",
-    ):
-        postcodes.update(int(code) for code in re.findall(pattern, normalized))
+    for segment in text.split(",")[1:]:
+        match = re.match(
+            r"^(\d{4})\s+(?:kobenhavn|koebenhavn|frederiksberg)\b",
+            normalize_text(segment),
+        )
+        if match:
+            postcodes.add(int(match.group(1)))
     return postcodes
 
 

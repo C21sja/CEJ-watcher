@@ -409,6 +409,17 @@ class CityApartmentParsingTests(unittest.TestCase):
     </article>
     """
 
+    @staticmethod
+    def _listing_html(title, postcode):
+        return f"""
+        <article class="elementor-post cityapartments type-cityapartments">
+          <h3><a href="https://cityapartment.dk/da/cityapartments/historical/">{title}</a></h3>
+          <p>Post nr. {postcode}</p>
+          <p>65 m2</p>
+          <p>12500 DKK / pr. maaned</p>
+        </article>
+        """
+
     def test_only_returns_cards_in_target_areas(self):
         apartments = watcher.parse_city_apartment_listings(self.SAMPLE_HTML)
 
@@ -424,6 +435,19 @@ class CityApartmentParsingTests(unittest.TestCase):
 
         self.assertTrue(watcher.matches_general_listing_filters(apt))
         self.assertIn("1123", apt["location"]["formatted"])
+
+    def test_labeled_outer_postcode_wins_over_earlier_year_like_title_number(self):
+        html = self._listing_html("Historisk 1800 Ejendom", 2605)
+
+        self.assertEqual([], watcher.parse_city_apartment_listings(html))
+
+    def test_labeled_target_postcode_is_stored_and_passes_global_policy(self):
+        html = self._listing_html("Historisk 1800 Ejendom", 1123)
+
+        apt = watcher.parse_city_apartment_listings(html)[0]
+
+        self.assertEqual(1123, watcher.extract_postcode(apt["location"]["formatted"]))
+        self.assertTrue(watcher.matches_general_listing_filters(apt))
 
     def test_headers_include_accept_language_to_avoid_waf_block(self):
         # cityapartment.dk returns HTTP 454 for requests missing Accept-Language
