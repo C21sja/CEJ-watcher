@@ -180,6 +180,13 @@ def canonical_listing_key(address, transaction_type):
     return f"{normalize_text(transaction_type)}:{normalize_text(address)}"
 
 
+def _source_priority(listing):
+    try:
+        return int(listing.get("source_priority", 100))
+    except (TypeError, ValueError, OverflowError):
+        return 100
+
+
 def deduplicate_listings(listings):
     selected = {}
     key_order = []
@@ -190,7 +197,7 @@ def deduplicate_listings(listings):
             selected[key] = listing
             key_order.append(key)
             continue
-        if listing.get("source_priority", 100) < selected[key].get("source_priority", 100):
+        if _source_priority(listing) < _source_priority(selected[key]):
             selected[key] = listing
 
     return [selected[key] for key in key_order]

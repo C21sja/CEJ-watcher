@@ -68,6 +68,95 @@ class ListingDeduplicationTests(unittest.TestCase):
             [listing["source"] for listing in result],
         )
 
+    def test_numeric_string_priority_is_compared_as_an_integer(self):
+        listings = [
+            {
+                "id": "aggregator",
+                "canonical_key": "rent:same-street",
+                "source": "Aggregator",
+                "source_priority": 40,
+            },
+            {
+                "id": "origin",
+                "canonical_key": "rent:same-street",
+                "source": "Origin",
+                "source_priority": "10",
+            },
+        ]
+
+        result = housing_policy.deduplicate_listings(listings)
+
+        self.assertEqual(["Origin"], [listing["source"] for listing in result])
+
+    def test_default_priority_can_be_replaced_but_equal_priority_keeps_first(self):
+        listings = [
+            {
+                "id": "default-first",
+                "canonical_key": "rent:default-priority",
+                "source": "Default first",
+            },
+            {
+                "id": "lower-priority",
+                "canonical_key": "rent:default-priority",
+                "source": "Lower priority",
+                "source_priority": 40,
+            },
+            {
+                "id": "tie-first",
+                "canonical_key": "rent:equal-priority",
+                "source": "Tie first",
+                "source_priority": 10,
+            },
+            {
+                "id": "tie-second",
+                "canonical_key": "rent:equal-priority",
+                "source": "Tie second",
+                "source_priority": 10,
+            },
+        ]
+
+        result = housing_policy.deduplicate_listings(listings)
+
+        self.assertEqual(
+            ["Lower priority", "Tie first"],
+            [listing["source"] for listing in result],
+        )
+
+    def test_malformed_priorities_fall_back_to_default_priority(self):
+        listings = [
+            {
+                "id": "valid-first",
+                "canonical_key": "rent:invalid-new",
+                "source": "Valid first",
+                "source_priority": 40,
+            },
+            {
+                "id": "invalid-new",
+                "canonical_key": "rent:invalid-new",
+                "source": "Invalid new",
+                "source_priority": "urgent",
+            },
+            {
+                "id": "invalid-first",
+                "canonical_key": "rent:invalid-existing",
+                "source": "Invalid first",
+                "source_priority": None,
+            },
+            {
+                "id": "valid-replacement",
+                "canonical_key": "rent:invalid-existing",
+                "source": "Valid replacement",
+                "source_priority": 40,
+            },
+        ]
+
+        result = housing_policy.deduplicate_listings(listings)
+
+        self.assertEqual(
+            ["Valid first", "Valid replacement"],
+            [listing["source"] for listing in result],
+        )
+
 
 class PriceFormattingTests(unittest.TestCase):
     def test_formats_total_and_monthly_prices_with_danish_thousands(self):
