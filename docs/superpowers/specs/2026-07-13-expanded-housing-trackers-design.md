@@ -1,6 +1,6 @@
 # Expanded Copenhagen Housing Trackers Design
 
-**Date:** 2026-07-13  
+**Date:** 2026-07-13
 **Status:** Conversational design approved; written specification awaiting user review
 
 ## Context
@@ -147,7 +147,7 @@ The scheduler tracks each source's next due time. A failure advances only that s
 - Reject malformed rows, missing addresses, invalid dimensions, and threshold failures.
 - Treat every remaining row as a candidate, not an active listing.
 - Alert only after the linked originating source gives positive evidence that the same full unit and transaction type are currently active. Positive evidence is either membership in the origin's current inventory or an explicit structured/visible active status on the origin record. When the candidate lacks floor/door data, its rooms, area, and price must also match the origin closely enough to distinguish the unit. The origin's current price replaces the aggregator price and must independently pass the configured threshold. An HTTP 200 response or absence of the word `sold` is not sufficient.
-- Unsupported or ambiguous origin pages are logged once by candidate ID and suppressed.
+- Every origin host present in the implementation-time scan is a release-gated verifier target. Unsupported or ambiguous records on known hosts are logged once by candidate ID and suppressed. A genuinely new host appearing after release is not fetched; it produces one non-mention manual-review inspection event so the coverage gap is visible without presenting the candidate as a home.
 
 ### Taurus
 
@@ -190,9 +190,9 @@ The scheduler tracks each source's next due time. A failure advances only that s
 ### CPH Homes
 
 - Monitor the relevant Holmen, Sydhavnen, Ørestad, Islands Brygge, and Engholmene portfolio pages plus newly published posts.
-- The site's WordPress REST path currently falls back to HTTP because its HTTPS REST path is broken. Fetches are read-only, pinned to the exact host, isolated from all other sources, and never used to execute or import content.
+- Do not consume the site's plain-HTTP WordPress REST fallback. Fetch the pinned canonical pages over HTTPS and discover new posts only from scoped `<article>` links on the pinned HTTPS homepage; follow only same-host HTTPS post URLs with a defensive limit.
 - Baseline normalized main content, excluding navigation, footer, timestamps unrelated to content, scripts, and styling.
-- A change containing availability language, rent, a kroner amount, a preferred postcode, or a new outbound application link creates a readiness event.
+- A change containing availability language, rent, a kroner amount, a preferred postcode, or a new outbound application link creates a readiness event. A fixture-backed exact external application host may contribute its full HTTPS URL; a previously unseen external host contributes only a host-review signal while the event continues to link to the trusted CPH Homes page.
 - An otherwise material but unparseable change creates one `CPH Homes changed - inspect now` event keyed by page ID and revision. It is never presented as a confirmed home.
 
 ### Værnedamsvej application readiness
@@ -200,7 +200,7 @@ The scheduler tracks each source's next due time. A failure advances only that s
 - Monitor both official Danish pages.
 - Persist the newest project-update tuple: title, displayed date, and normalized first paragraph.
 - An ordinary change to that tuple creates a project-status event.
-- Create an urgent `APPLICATION OPENING` event when a new form, button, or link appears with positive terms such as `skriv dig op`, `opskrivning`, `interesseliste`, `tilmelding`, `ansøg`, `ledige boliger`, `boliger til leje`, `book fremvisning`, or `se boliger`.
+- Create an urgent `APPLICATION OPENING` event when a new form, button, or link appears with strong positive terms such as `skriv dig op`, `opskrivning`, `interesseliste`, `tilmelding`, `ansøg`, `ledige boliger`, `boliger til leje`, or `book fremvisning`. Treat the generic label `se boliger` as inspection evidence unless the same scoped page also states that applications or homes are currently open.
 - The disappearance or replacement of DFE's current registration-not-possible statement is also urgent.
 - Negation-aware matching must suppress phrases such as `ikke skrive sig op`, `ikke åbent`, and `ikke muligt`.
 - Ignore generic building-permit, hotel, Instagram, footer, privacy, and English-duplicate text.
@@ -238,7 +238,7 @@ Existing sources and existing `seen_ids.json` entries are not replayed.
 - A new listing or a status transition produces the existing individual listing alert.
 - A normal project/page change produces a clearly labelled readiness alert.
 - A positively detected Værnedamsvej application opening produces an urgent alert with the configured mention and direct link.
-- Unverified Kobenhavn.dk candidates produce logs, not Discord alerts.
+- Unverified Kobenhavn.dk records on known hosts produce logs, not Discord alerts. A new future origin host produces one non-mention inspection alert about the missing verifier; it never presents the candidate as an active home.
 - CPH Homes inspection notices explicitly say that no confirmed vacancy was parsed.
 
 ## State Compatibility
