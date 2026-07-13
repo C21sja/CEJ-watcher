@@ -288,3 +288,203 @@ def fetch_cphomes(fetch_text):
     post_urls = discover_cphomes_post_urls(documents[CPH_DOCUMENT_URLS["home"]])
     documents.update({url: fetch_text(url) for url in post_urls})
     return parse_cphomes_documents(documents, post_urls)
+
+
+PROJECT_STATUS_URL = "https://denfranskeskolevaernedamsvej.dk/status-pa-projektet/"
+DFE_PROJECT_URL = "https://www.dfe.dk/bolig/bolig/the-french-school-at-vaernedamsvej"
+APPLICATION_TERMS = (
+    "skriv dig op",
+    "opskrivning",
+    "interesseliste",
+    "tilmelding",
+    "ansog",
+    "ledige boliger",
+    "boliger til leje",
+    "book fremvisning",
+    "se boliger",
+)
+NEGATED_APPLICATION_PATTERNS = (
+    r"ikke.{0,80}(?:skrive sig op|opskrivning|tilmelding|ansog)",
+    r"(?:ansogning|tilmelding|opskrivning).{0,50}(?:ikke aben|lukket|senere)",
+    r"(?:kan|er).{0,40}ikke.{0,80}(?:ansog|tilmeld|opskriv|skrive sig op)",
+    r"ingen.{0,50}(?:ansogning|tilmelding|opskrivning)",
+    r"ikke.{0,80}muligt.{0,80}(?:bolig|nyhedsbrev)",
+)
+DANISH_MONTHS = {
+    "januar": 1,
+    "februar": 2,
+    "marts": 3,
+    "april": 4,
+    "maj": 5,
+    "juni": 6,
+    "juli": 7,
+    "august": 8,
+    "september": 9,
+    "oktober": 10,
+    "november": 11,
+    "december": 12,
+}
+APPLICATION_HOSTS = {"denfranskeskolevaernedamsvej.dk", "www.dfe.dk", "dfe.dk"}
+
+
+def _plain_html(value):
+    return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", value))).strip()
+
+
+def _danish_date_key(value):
+    parts = normalize_text(value).split()
+    if len(parts) < 3 or parts[1] not in DANISH_MONTHS:
+        raise SourceContractError(f"Unrecognized Værnedamsvej update date: {value}")
+    return int(parts[2]), DANISH_MONTHS[parts[1]], int(parts[0])
+
+
+def parse_latest_project_update(html):
+    headings = list(re.finditer(r"<h[1-3][^>]*>([\s\S]*?)</h[1-3]>", html, re.IGNORECASE))
+    updates = []
+    for index, heading in enumerate(headings):
+        end = headings[index + 1].start() if index + 1 < len(headings) else len(html)
+        section = html[heading.end() : end]
+        date_match = re.search(r"Opdateret den\s+([^<]+)", section, re.IGNORECASE)
+        paragraphs = re.findall(r"<p[^>]*>([\s\S]*?)</p\s*>", section, re.IGNORECASE)
+        if date_match and paragraphs:
+            title = _plain_html(heading.group(1))
+            date = _plain_html(date_match.group(1))
+            body_paragraphs = [_plain_html(value) for value in paragraphs]
+            paragraph = next(
+                (
+                    value
+                    for value in body_paragraphs
+                    if not normalize_text(value).startswith("opdateret den")
+                ),
+                body_paragraphs[0],
+            )
+            updates.append((_danish_date_key(date), title, date, paragraph))
+    if not updates:
+        raise SourceContractError("Værnedamsvej latest project update is missing")
+    _key, title, date, paragraph = max(updates, key=lambda value: value[0])
+    return title, date, paragraph
+
+
+def _action_confidence(value):
+    scrubbed = normalize_text(value)
+    for pattern in NEGATED_APPLICATION_PATTERNS:
+        scrubbed = re.sub(pattern, " ", scrubbed, flags=re.IGNORECASE)
+    strong_terms = (
+        "skriv dig op",
+        "opskrivning",
+        "interesseliste",
+        "tilmelding",
+        "ansog",
+        "ledige boliger",
+        "boliger til leje",
+        "book fremvisning",
+    )
+    if any(term in scrubbed for term in strong_terms):
+        return 2
+    return 1 if any(term in scrubbed for term in APPLICATION_TERMS) else 0
+
+
+def _safe_project_action(base_url, value):
+    target = urljoin(base_url, value or base_url)
+    parsed = urlparse(target)
+    return target if parsed.scheme == "https" and parsed.hostname in APPLICATION_HOSTS else None
+
+
+def extract_application_actions(html, base_url, origin="project"):
+    main = re.search(r"<main\b[^>]*>([\s\S]*?)</main\s*>", html, re.IGNORECASE)
+    scope = main.group(1) if main else ""
+    actions = []
+    form_pattern = r"<form\b([^>]*)>([\s\S]*?)</form\s*>"
+    for attributes, body in re.findall(form_pattern, scope, re.IGNORECASE):
+        confidence = _action_confidence(_plain_html(body))
+        if not confidence:
+            continue
+        action_match = re.search(r'action=["\']([^"\']+)["\']', attributes, re.IGNORECASE)
+        target = _safe_project_action(base_url, action_match.group(1) if action_match else base_url)
+        if not target:
+            continue
+        actions.append({"url": target, "label": _plain_html(body), "confidence": 3, "origin": origin})
+    scope_without_forms = re.sub(form_pattern, " ", scope, flags=re.IGNORECASE)
+    for tag, attributes, body in re.findall(
+        r"<(a|button)\b([^>]*)>([\s\S]*?)</\1\s*>", scope_without_forms, re.IGNORECASE
+    ):
+        label = _plain_html(body)
+        confidence = _action_confidence(label)
+        if not confidence:
+            continue
+        target_match = re.search(r'(?:href|formaction)=["\']([^"\']+)["\']', attributes, re.IGNORECASE)
+        target = _safe_project_action(base_url, target_match.group(1) if target_match else base_url)
+        if not target:
+            continue
+        actions.append({"url": target, "label": label, "confidence": confidence, "origin": origin})
+    deduplicated = {}
+    for action in actions:
+        deduplicated[(action["url"], normalize_text(action["label"]))] = action
+    return sorted(
+        deduplicated.values(),
+        key=lambda action: (-action["confidence"], action["url"], normalize_text(action["label"])),
+    )
+
+
+def detect_application_signal(html):
+    main = re.search(r"<main\b[^>]*>([\s\S]*?)</main\s*>", html, re.IGNORECASE)
+    normalized_main = normalize_text(_plain_html(main.group(1) if main else ""))
+    if any(
+        re.search(pattern, normalized_main, re.IGNORECASE) for pattern in NEGATED_APPLICATION_PATTERNS
+    ):
+        return False
+    return any(
+        action["confidence"] >= 2
+        for action in extract_application_actions(html, DFE_PROJECT_URL, origin="dfe")
+    )
+
+
+def fetch_vaernedamsvej(fetch_text):
+    project_html = fetch_text(PROJECT_STATUS_URL)
+    dfe_html = fetch_text(DFE_PROJECT_URL)
+    title, date, paragraph = parse_latest_project_update(project_html)
+    dfe_main = re.search(r"<main\b[^>]*>([\s\S]*?)</main\s*>", dfe_html, re.IGNORECASE)
+    normalized_dfe = normalize_text(_plain_html(dfe_main.group(1) if dfe_main else ""))
+    registration_closed = any(
+        re.search(pattern, normalized_dfe, re.IGNORECASE) for pattern in NEGATED_APPLICATION_PATTERNS
+    )
+    actions = extract_application_actions(
+        project_html, PROJECT_STATUS_URL, origin="project"
+    ) + extract_application_actions(dfe_html, DFE_PROJECT_URL, origin="dfe")
+    actions.sort(
+        key=lambda action: (
+            -int(action["origin"] == "dfe" and action["confidence"] >= 2),
+            -action["confidence"],
+            action["url"],
+            normalize_text(action["label"]),
+        )
+    )
+    action_signals = sorted(
+        f"action:{action['url']}:{normalize_text(action['label'])}" for action in actions
+    )
+    opening_actions = [action for action in actions if action["confidence"] >= 2]
+    opening_signal = bool(opening_actions) and not registration_closed
+    signature_input = (
+        f"{title}|{date}|{paragraph}|closed={registration_closed}|actions={'|'.join(action_signals)}"
+    )
+    headline = "APPLICATION OPENING — Værnedamsvej" if opening_signal else f"{title} — {date}"
+    direct_url = opening_actions[0]["url"] if opening_signal else PROJECT_STATUS_URL
+    event = _readiness_event(
+        "readiness:vaernedamsvej",
+        "Den Franske Skole/Værnedamsvej",
+        headline,
+        paragraph,
+        _signature(signature_input),
+        direct_url,
+        urgent=opening_signal,
+        registration_closed=registration_closed,
+    )
+    event.update(
+        {
+            "kind": "application_opening" if opening_signal else "project_update",
+            "signals": action_signals,
+            "application_url": direct_url if opening_signal else DFE_PROJECT_URL,
+            "urgent_headline": "APPLICATION OPENING — Værnedamsvej",
+        }
+    )
+    return SourceSnapshot(source="Værnedamsvej", events=[event])
