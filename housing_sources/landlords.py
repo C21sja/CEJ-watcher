@@ -198,3 +198,125 @@ def fetch_taurus(fetch_text):
             "No shortlisted Taurus detail matched the labelled-field contract"
         )
     return SourceSnapshot(source="Taurus", listings=listings)
+
+
+LEJE_API_URL = "https://lejeboligmaegleren.dk/Umbraco/Api/Case/Search"
+LEJE_UNIT_TYPES_URL = "https://lejeboligmaegleren.dk/Umbraco/Api/Case/UnitCaseTypes"
+LEJE_TAGS_URL = "https://lejeboligmaegleren.dk/Umbraco/Api/Case/Tags"
+
+
+def _lej_state(value):
+    normalized = normalize_text(value)
+    if normalized in {"ledig", "under opsigelse"}:
+        return "Available"
+    if normalized in {"kontrakt under udarbejdelse", "udlejet afventer underskrift"}:
+        return "Reserved"
+    return None
+
+
+def _lej_dictionary(records):
+    if not isinstance(records, list):
+        raise SourceContractError("Lejeboligmægleren dictionary response is not a list")
+    return {
+        record.get("Id"): str(record.get("Name") or "")
+        for record in records
+        if isinstance(record, dict) and record.get("Id") is not None
+    }
+
+
+def _lej_restriction_text(case, unit_type_names, tag_names):
+    tags = case.get("Tags") or []
+    tag_text = " ".join(
+        str(tag.get("Name") or tag.get("name") or "")
+        if isinstance(tag, dict)
+        else tag_names.get(tag, str(tag))
+        for tag in tags
+    )
+    unit_type = case.get("UnitType")
+    unit_type_text = (
+        str(unit_type.get("Name") or unit_type.get("name") or "")
+        if isinstance(unit_type, dict)
+        else unit_type_names.get(unit_type, str(unit_type or ""))
+    )
+    return " ".join(
+        str(value or "")
+        for value in (case.get("Description"), unit_type_text, tag_text)
+    )
+
+
+def fetch_lejeboligmaegleren(post_json, fetch_json, max_pages=50, page_size=24):
+    listings = []
+    seen_case_ids = set()
+    unit_type_names = _lej_dictionary(fetch_json(LEJE_UNIT_TYPES_URL))
+    tag_names = _lej_dictionary(fetch_json(LEJE_TAGS_URL))
+    for page in range(1, max_pages + 1):
+        payload = {
+            "PageIndex": page,
+            "PageSize": page_size,
+            "MaxRent": 18_000,
+            "ZipCodes": [],
+            "TypeIds": [],
+            "TagIds": [],
+            "MinRooms": None,
+            "MaxRooms": None,
+            "MinSize": None,
+            "MaxSize": None,
+            "MinFloor": None,
+            "MaxFloor": None,
+            "AcquisitionDateFrom": None,
+            "AcquisitionDateTo": None,
+            "OnlyAvailable": False,
+            "RentalPeriod": None,
+            "FacilityIds": [],
+            "AddressQuery": "",
+        }
+        data = post_json(LEJE_API_URL, payload)
+        if not isinstance(data, dict) or ("Cases" not in data and "cases" not in data):
+            raise SourceContractError("Lejeboligmægleren response has no Cases key")
+        cases = data.get("Cases") if "Cases" in data else data.get("cases")
+        if not isinstance(cases, list):
+            raise SourceContractError("Lejeboligmægleren Cases is not a list")
+        if not cases:
+            break
+        for case in cases:
+            case_id = case.get("Id") or case.get("id")
+            if not case_id or case_id in seen_case_ids:
+                continue
+            seen_case_ids.add(case_id)
+            address = str(case.get("Address") or case.get("address") or "").strip()
+            city_record = case.get("City") or case.get("city") or {}
+            if not isinstance(city_record, dict):
+                raise SourceContractError(
+                    f"Lejeboligmægleren case {case_id} City is not an object"
+                )
+            postcode = str(city_record.get("ZipCode") or city_record.get("zipCode") or "").strip()
+            city = str(city_record.get("Name") or city_record.get("name") or "").strip()
+            status = _lej_state(case.get("State") or case.get("state"))
+            if status is None:
+                continue
+            restriction_text = _lej_restriction_text(case, unit_type_names, tag_names)
+            address_line = f"{address}, {postcode} {city}".strip(", ")
+            listing = {
+                "id": f"lejeboligmaegleren:{case_id}",
+                "status": status,
+                "name": address,
+                "price": {"amount": case.get("Rent") or case.get("rent")},
+                "location": {"formatted": address_line},
+                "availableFrom": case.get("AcquisitionDate") or "See link for info",
+                "url": f"https://lejeboligmaegleren.dk/cases/{case_id}/",
+                "source": "Lejeboligmægleren",
+                "transaction_type": "rent",
+                "price_period": "month",
+                "rooms": case.get("Rooms") or case.get("rooms"),
+                "size_sqm": case.get("Size") or case.get("size"),
+                "raw_text": restriction_text,
+                "canonical_key": canonical_listing_key(address_line, "rent"),
+                "source_priority": 20,
+            }
+            if not contains_restricted_eligibility(restriction_text) and listing_matches_policy(
+                listing
+            ):
+                listings.append(listing)
+        if len(cases) < page_size:
+            break
+    return SourceSnapshot(source="Lejeboligmægleren", listings=listings)

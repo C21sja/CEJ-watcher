@@ -3,6 +3,7 @@ import unittest
 from housing_sources import SourceContractError
 from housing_sources.landlords import (
     TAURUS_URL,
+    fetch_lejeboligmaegleren,
     fetch_taurus,
     parse_taurus_detail,
     parse_taurus_overview,
@@ -311,6 +312,156 @@ class TaurusSourceTests(unittest.TestCase):
         snapshot = fetch_taurus(fetch_text)
 
         self.assertEqual(["taurus:302"], [item["id"] for item in snapshot.listings])
+
+
+class LejeboligmaeglerenSourceTests(unittest.TestCase):
+    def test_paginates_until_empty_and_maps_actionable_states(self):
+        calls = []
+        pages_payloads = []
+        pages = {
+            1: {
+                "Cases": [
+                    {
+                        "Id": 701,
+                        "Address": "Sluseholmen 1",
+                        "City": {"ZipCode": 2450, "Name": "København SV"},
+                        "Rent": 9200,
+                        "State": "Ledig",
+                        "Rooms": 2,
+                        "Size": 61,
+                        "AcquisitionDate": "2026-08-01",
+                        "Description": "Familiebolig",
+                        "Tags": [],
+                        "UnitType": "Lejlighed",
+                    },
+                    {
+                        "Id": 702,
+                        "Address": "Amagerbrogade 2",
+                        "City": {"ZipCode": 2300, "Name": "København S"},
+                        "Rent": 18000,
+                        "State": "Under opsigelse",
+                        "Rooms": 3,
+                        "Size": 78,
+                        "AcquisitionDate": "2026-09-01",
+                        "Description": "",
+                        "Tags": [],
+                    },
+                    {
+                        "Id": 703,
+                        "Address": "Amagerbrogade 4",
+                        "City": {"ZipCode": 2300, "Name": "København S"},
+                        "Rent": 15000,
+                        "State": "Kontrakt under udarbejdelse",
+                        "Rooms": 2,
+                        "Size": 65,
+                        "AcquisitionDate": "2026-10-01",
+                        "Description": "",
+                        "Tags": [],
+                    },
+                    {
+                        "Id": 704,
+                        "Address": "Amagerbrogade 6",
+                        "City": {"ZipCode": 2300, "Name": "København S"},
+                        "Rent": 8000,
+                        "State": "Ledig",
+                        "Rooms": 1,
+                        "Size": 30,
+                        "Description": "",
+                        "Tags": [99],
+                        "UnitType": 9,
+                    },
+                ],
+                "HasMorePages": True,
+            },
+            2: {"Cases": [], "HasMorePages": True},
+        }
+
+        def post_json(_url, payload):
+            calls.append(payload["PageIndex"])
+            pages_payloads.append(payload)
+            return pages[payload["PageIndex"]]
+
+        def fetch_json(url):
+            if url.endswith("UnitCaseTypes"):
+                return [{"Id": 9, "Name": "Studiebolig"}]
+            return [{"Id": 99, "Name": "Kun for studerende"}]
+
+        snapshot = fetch_lejeboligmaegleren(post_json, fetch_json, page_size=4)
+
+        self.assertEqual([1, 2], calls)
+        self.assertEqual(
+            ["Available", "Available", "Reserved"],
+            [item["status"] for item in snapshot.listings],
+        )
+        self.assertEqual(
+            "https://lejeboligmaegleren.dk/cases/701/", snapshot.listings[0]["url"]
+        )
+        self.assertEqual(61, snapshot.listings[0]["size_sqm"])
+        self.assertEqual("2026-08-01", snapshot.listings[0]["availableFrom"])
+        required_payload_keys = {
+            "PageIndex",
+            "PageSize",
+            "MaxRent",
+            "ZipCodes",
+            "TypeIds",
+            "TagIds",
+            "MinRooms",
+            "MaxRooms",
+            "MinSize",
+            "MaxSize",
+            "MinFloor",
+            "MaxFloor",
+            "AcquisitionDateFrom",
+            "AcquisitionDateTo",
+            "OnlyAvailable",
+            "RentalPeriod",
+            "FacilityIds",
+            "AddressQuery",
+        }
+        self.assertEqual(required_payload_keys, set(pages_payloads[0]))
+
+    def test_rejects_studiebolig_unit_type_and_restricted_tag(self):
+        pages = {1: {"Cases": [], "HasMorePages": False}}
+
+        def post_json(_url, payload):
+            return pages[payload["PageIndex"]]
+
+        def fetch_json(url):
+            if url.endswith("UnitCaseTypes"):
+                return [{"Id": 9, "Name": "Studiebolig"}]
+            return [{"Id": 99, "Name": "Kun for studerende"}]
+
+        pages[1]["Cases"] = [
+            {
+                "Id": 801,
+                "Address": "Studievej 1",
+                "City": {"ZipCode": 2200, "Name": "København N"},
+                "Rent": 8000,
+                "State": "Ledig",
+                "Rooms": 1,
+                "Size": 25,
+                "Tags": [99],
+                "UnitType": 9,
+            }
+        ]
+        snapshot = fetch_lejeboligmaegleren(post_json, fetch_json)
+        self.assertEqual([], snapshot.listings)
+
+    def test_missing_cases_key_is_not_treated_as_empty(self):
+        with self.assertRaisesRegex(Exception, "Cases key"):
+            fetch_lejeboligmaegleren(
+                lambda _url, _payload: {"HasMorePages": False},
+                lambda _url: [],
+            )
+
+    def test_city_not_an_object_fails_closed(self):
+        pages = {1: {"Cases": [{"Id": 1, "Address": "X", "City": "not-an-object", "Rent": 8000, "State": "Ledig"}]}}
+
+        def post_json(_url, payload):
+            return pages[payload["PageIndex"]]
+
+        with self.assertRaisesRegex(Exception, "City is not an object"):
+            fetch_lejeboligmaegleren(post_json, lambda _url: [])
 
 
 if __name__ == "__main__":
