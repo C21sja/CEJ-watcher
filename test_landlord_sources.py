@@ -4,7 +4,9 @@ from housing_sources import SourceContractError
 from housing_sources.landlords import (
     TAURUS_URL,
     fetch_lejeboligmaegleren,
+    fetch_norhjem,
     fetch_taurus,
+    parse_norhjem_results,
     parse_taurus_detail,
     parse_taurus_overview,
 )
@@ -462,6 +464,114 @@ class LejeboligmaeglerenSourceTests(unittest.TestCase):
 
         with self.assertRaisesRegex(Exception, "City is not an object"):
             fetch_lejeboligmaegleren(post_json, lambda _url: [])
+
+
+NORHJEM_RESULTS = [
+    {
+        "address": "Willemoesgade 1, 2. tv.",
+        "zipCode": 2100,
+        "city": "København Ø",
+        "url": "/ejendomme/osterbro/willemoesgade-1-2-tv/",
+        "price": 9150,
+        "rooms": 2,
+        "area": 55,
+        "status": "Ledig",
+        "moveInDate": "2026-08-01",
+        "type": "Lejlighed",
+    },
+    {
+        "address": "Amagerbrogade 10",
+        "zipCode": 2300,
+        "city": "København S",
+        "url": "/ejendomme/amager/student-1/",
+        "price": 5523,
+        "rooms": 1,
+        "area": 30,
+        "status": "Ledig",
+        "moveInDate": "2026-09-01",
+        "type": "Lejlighed",
+    },
+    {
+        "address": "Roskildevej 33",
+        "zipCode": 2000,
+        "city": "Frederiksberg",
+        "url": "/ejendomme/frederiksberg/reserved/",
+        "price": 12500,
+        "rooms": 2,
+        "area": 65,
+        "status": "Reserveret",
+        "moveInDate": "2026-10-01",
+        "type": "Lejlighed",
+    },
+]
+
+
+class NorhjemSourceTests(unittest.TestCase):
+    def test_normalizes_live_api_results_and_retains_reserved_state(self):
+        listings = parse_norhjem_results(
+            NORHJEM_RESULTS, blocked_urls={"/ejendomme/amager/student-1/"}
+        )
+        self.assertEqual(
+            [
+                "norhjem:/ejendomme/osterbro/willemoesgade-1-2-tv/",
+                "norhjem:/ejendomme/frederiksberg/reserved/",
+            ],
+            [item["id"] for item in listings],
+        )
+        self.assertEqual(["Available", "Reserved"], [item["status"] for item in listings])
+
+    def test_fetch_uses_canonical_form_api_and_detail_restriction_guard(self):
+        form_calls = []
+        detail_calls = []
+
+        def post_form(_url, payload):
+            form_calls.append(payload)
+            if payload.get("facilities") == "Kun for studerende":
+                return [NORHJEM_RESULTS[1]]
+            return NORHJEM_RESULTS
+
+        def fetch_text(url):
+            detail_calls.append(url)
+            return "<main>Almindelig lejebolig uden medlemskrav</main>"
+
+        snapshot = fetch_norhjem(post_form, fetch_text)
+        self.assertEqual(
+            [
+                {"maxPrice": "18000", "sort": ""},
+                {"maxPrice": "18000", "sort": "", "facilities": "Kun for studerende"},
+            ],
+            form_calls,
+        )
+        self.assertEqual(2, len(snapshot.listings))
+        self.assertTrue(all(url.startswith("https://norhjem.dk/ejendomme/") for url in detail_calls))
+
+    def test_rejects_restricted_detail_text_even_when_not_in_student_search(self):
+        def post_form(_url, payload):
+            if payload.get("facilities") == "Kun for studerende":
+                return []
+            return [NORHJEM_RESULTS[0]]
+
+        def fetch_text(_url):
+            return "<main>Denne bolig kraever medlemskab af en pensionsordning</main>"
+
+        snapshot = fetch_norhjem(post_form, fetch_text)
+        self.assertEqual([], snapshot.listings)
+
+    def test_wrong_api_shape_is_not_a_valid_empty_feed(self):
+        with self.assertRaisesRegex(Exception, "JSON list"):
+            fetch_norhjem(lambda _url, _payload: {"results": []}, lambda _url: "")
+
+    def test_raises_when_every_candidate_detail_fetch_fails(self):
+        def post_form(_url, payload):
+            if payload.get("facilities") == "Kun for studerende":
+                return []
+            return [NORHJEM_RESULTS[0]]
+
+        def fetch_text(_url):
+            return "   "
+
+        with self.assertRaisesRegex(Exception, "restriction-screening contract"):
+            fetch_norhjem(post_form, fetch_text)
 
 
 if __name__ == "__main__":

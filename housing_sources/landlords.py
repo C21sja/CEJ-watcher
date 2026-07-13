@@ -320,3 +320,86 @@ def fetch_lejeboligmaegleren(post_json, fetch_json, max_pages=50, page_size=24):
         if len(cases) < page_size:
             break
     return SourceSnapshot(source="Lejeboligmægleren", listings=listings)
+
+
+NORHJEM_URL = "https://norhjem.dk/for-boligsoegende/ledige-boliger/"
+NORHJEM_API_URL = "https://norhjem.dk/api/searchrental"
+
+
+def parse_norhjem_results(records, blocked_urls=frozenset()):
+    if not isinstance(records, list):
+        raise SourceContractError("Norhjem search API must return a JSON list")
+    listings = []
+    for record in records:
+        if not isinstance(record, dict):
+            continue
+        href = str(record.get("url") or "").strip()
+        if not href or href in blocked_urls:
+            continue
+        status_text = normalize_text(record.get("status"))
+        if status_text == "ledig":
+            status = "Available"
+        elif status_text in {"reserveret", "udlejet"}:
+            status = "Reserved"
+        else:
+            continue
+        address = str(record.get("address") or "").strip()
+        postcode = str(record.get("zipCode") or "").strip()
+        city = str(record.get("city") or "").strip()
+        full_address = f"{address}, {postcode} {city}".strip(", ")
+        listing = {
+            "id": f"norhjem:{href}",
+            "status": status,
+            "name": full_address,
+            "price": {"amount": record.get("price")},
+            "location": {"formatted": full_address},
+            "availableFrom": record.get("moveInDate") or "See link for info",
+            "url": urljoin(NORHJEM_URL, href),
+            "source": "Norhjem",
+            "transaction_type": "rent",
+            "price_period": "month",
+            "rooms": record.get("rooms"),
+            "size_sqm": record.get("area"),
+            "raw_text": " ".join(
+                str(record.get(field) or "") for field in ("type", "leasePeriod", "description")
+            ),
+            "canonical_key": canonical_listing_key(full_address, "rent"),
+            "source_priority": 20,
+        }
+        if listing_matches_policy(listing):
+            listings.append(listing)
+    return listings
+
+
+def fetch_norhjem(post_form, fetch_text):
+    base_payload = {"maxPrice": "18000", "sort": ""}
+    records = post_form(NORHJEM_API_URL, base_payload)
+    student_records = post_form(
+        NORHJEM_API_URL,
+        {**base_payload, "facilities": "Kun for studerende"},
+    )
+    if not isinstance(records, list) or not isinstance(student_records, list):
+        raise SourceContractError("Norhjem search API must return a JSON list")
+    blocked_urls = {
+        str(record.get("url")) for record in student_records if isinstance(record, dict)
+    }
+    candidates = parse_norhjem_results(records, blocked_urls=blocked_urls)
+    listings = []
+    valid_details = 0
+    for listing in candidates:
+        try:
+            detail_html = fetch_text(listing["url"])
+            if not detail_html.strip():
+                raise SourceContractError("empty detail response")
+            valid_details += 1
+        except Exception as exc:
+            print(f"Norhjem detail {listing['id']} failed: {exc}")
+            continue
+        main = re.search(r"<main\b[^>]*>([\s\S]*?)</main\s*>", detail_html, re.IGNORECASE)
+        detail_text = _plain_text(main.group(1) if main else detail_html)
+        listing["raw_text"] = f"{listing.get('raw_text', '')} {detail_text}"
+        if not contains_restricted_eligibility(listing["raw_text"]):
+            listings.append(listing)
+    if candidates and valid_details == 0:
+        raise SourceContractError("No Norhjem detail matched the restriction-screening contract")
+    return SourceSnapshot(source="Norhjem", listings=listings)
