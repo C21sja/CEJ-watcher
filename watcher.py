@@ -3,11 +3,21 @@ import os
 import re
 import sys
 import time
-import unicodedata
 import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from html import unescape
+
+from housing_policy import (
+    canonical_listing_key,
+    contains_commercial_use,
+    contains_restricted_eligibility,
+    extract_amount,
+    extract_postcode,
+    is_preferred_postcode,
+    listing_matches_policy,
+    normalize_text,
+)
 
 # Configurations
 API_URL = "https://udlejning.cej.dk/find-bolig/overblik?collection=residences&monthlyPrice=0-50000&p=sj%C3%A6lland&_data=routes%2Fsearch%2Flayout"
@@ -147,9 +157,6 @@ RUN_COUNT = read_non_negative_int_env("WATCHER_RUNS", 0)
 CEJ_MAX_ATTEMPTS = read_non_negative_int_env("CEJ_MAX_ATTEMPTS", 5)
 CEJ_RETRY_BASE_SECONDS = read_non_negative_int_env("CEJ_RETRY_BASE_SECONDS", 10)
 CEJ_MAX_PRICE = 18000
-CEJ_PRIMARY_POSTCODE_MIN = 1000
-CEJ_PRIMARY_POSTCODE_MAX = 2500
-CEJ_EXTRA_POSTCODES = {2700, 2720}
 EXCLUDED_LOCATION_KEYWORDS = ["rodovre", "hvidovre", "ballerup", "valby", "vanlose"]
 CEJ_LOCATION_KEYWORDS = [
     "kobenhavn",
@@ -160,26 +167,6 @@ CEJ_LOCATION_KEYWORDS = [
     "vesterbro",
     "osterbro",
     "islands brygge",
-]
-
-# City Apartment listings should only trigger for these five Copenhagen districts.
-# Postal-code ranges follow the standard Danish district mapping (same convention
-# used elsewhere in this file for CEJ/Capital Bolig/Juli Living/C.W. Obel).
-CITY_APARTMENT_TARGET_POSTCODE_RANGES = [
-    (1000, 1499),  # Koebenhavn K
-    (1500, 1799),  # Koebenhavn V / Vesterbro
-    (1800, 2000),  # Frederiksberg C / Frederiksberg
-    (2100, 2100),  # Koebenhavn OE / Osterbro
-    (2300, 2300),  # Koebenhavn S / Amager
-    (2450, 2450),  # Koebenhavn SV / Amager
-    (2770, 2770),  # Kastrup / Amager
-]
-CITY_APARTMENT_TARGET_KEYWORDS = [
-    "amager",
-    "kobenhavn k",
-    "frederiksberg",
-    "vesterbro",
-    "osterbro",
 ]
 
 # --- Adaptive polling -------------------------------------------------------
@@ -300,13 +287,6 @@ STATUS_LABELS = {
     "rented": "Rented",
     "udlejet": "Rented",
 }
-DANISH_TRANSLATION = str.maketrans({
-    "æ": "ae",
-    "ø": "o",
-    "å": "a",
-})
-
-
 def safe_console_text(value):
     text = str(value)
     encoding = getattr(sys.stdout, "encoding", None) or "utf-8"
@@ -314,32 +294,11 @@ def safe_console_text(value):
 
 
 def normalize_search_text(value):
-    text = str(value or "").strip().lower().translate(DANISH_TRANSLATION)
-    normalized = unicodedata.normalize("NFKD", text)
-    ascii_text = normalized.encode("ascii", errors="ignore").decode("ascii")
-    return re.sub(r"\s+", " ", ascii_text).strip()
+    return normalize_text(value)
 
 
 def extract_numeric_value(raw_value):
-    if raw_value is None:
-        return None
-
-    if isinstance(raw_value, (int, float)):
-        return int(raw_value)
-
-    text = str(raw_value)
-    match = re.search(r"(\d[\d\.\s,]*)", text)
-    if not match:
-        return None
-
-    digits = re.sub(r"\D", "", match.group(1))
-    if not digits:
-        return None
-
-    try:
-        return int(digits)
-    except ValueError:
-        return None
+    return extract_amount(raw_value)
 
 
 def normalize_listing_status(raw_status):
@@ -358,7 +317,7 @@ def normalize_listing_status(raw_status):
 
 
 def is_target_postal_code(post_code):
-    return CEJ_PRIMARY_POSTCODE_MIN <= post_code <= CEJ_PRIMARY_POSTCODE_MAX or post_code in CEJ_EXTRA_POSTCODES
+    return is_preferred_postcode(post_code)
 
 
 def extract_html_text_lines(html):
@@ -575,17 +534,11 @@ def strip_html_tags(value):
 
 
 def extract_price_amount(raw_value):
-    return extract_numeric_value(raw_value)
+    return extract_amount(raw_value)
 
 
 def extract_postal_code(text):
-    if not text:
-        return None
-
-    match = re.search(r"\b(\d{4})\b", str(text))
-    if not match:
-        return None
-    return int(match.group(1))
+    return extract_postcode(text)
 
 
 def contains_excluded_location(text):
@@ -609,19 +562,7 @@ def matches_cej_location_and_price(location_text, price_amount):
 
 
 def matches_general_listing_filters(listing):
-    price_amount = extract_price_amount((listing.get("price") or {}).get("amount"))
-    if price_amount is not None and price_amount > CEJ_MAX_PRICE:
-        return False
-
-    location = listing.get("location") or {}
-    location_text = ""
-    if isinstance(location, dict):
-        location_text = str(location.get("formatted") or "")
-    else:
-        location_text = str(location or "")
-
-    name_text = str(listing.get("name") or "")
-    return not contains_excluded_location(f"{location_text} {name_text}")
+    return listing_matches_policy(listing)
 
 
 def is_capital_target_location(location_text):
@@ -712,18 +653,8 @@ def fetch_cej_apartments(max_attempts=None, base_delay_seconds=None):
 
 
 def is_city_apartment_target_area(text):
-    """True if `text` mentions one of the five requested Copenhagen districts
-    (Amager, Koebenhavn K, Frederiksberg, Vesterbro, Osterbro), matched either
-    by postal code or by district name (both normalized, ASCII, lowercase)."""
-    normalized = normalize_search_text(text)
-
-    post_code = extract_postal_code(normalized)
-    if post_code is not None:
-        for low, high in CITY_APARTMENT_TARGET_POSTCODE_RANGES:
-            if low <= post_code <= high:
-                return True
-
-    return any(keyword in normalized for keyword in CITY_APARTMENT_TARGET_KEYWORDS)
+    """Return whether text contains a postcode covered by the shared policy."""
+    return is_preferred_postcode(extract_postcode(text))
 
 
 def fetch_city_apartments():

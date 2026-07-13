@@ -356,24 +356,32 @@ class CityApartmentAreaFilterTests(unittest.TestCase):
     def test_accepts_vesterbro_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Istedgade 5 Post nr. 1650"))
 
-    def test_accepts_frederiksberg_by_postcode(self):
+    def test_accepts_frederiksberg_and_koebenhavn_nv_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Falkoner Alle 1 Post nr. 2000"))
+        self.assertTrue(watcher.is_city_apartment_target_area("Lærkevej 10, 2400 København NV"))
 
     def test_accepts_oesterbro_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Oesterbrogade 1 Post nr. 2100"))
 
     def test_accepts_amager_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Amagerbrogade 1 Post nr. 2300"))
-        self.assertTrue(watcher.is_city_apartment_target_area("Postnummer 2770 Kastrup"))
 
-    def test_accepts_by_keyword_when_postcode_missing(self):
-        self.assertTrue(watcher.is_city_apartment_target_area("Dejlig lejlighed paa Vesterbro"))
+    def test_rejects_keyword_only_location_when_postcode_missing(self):
+        self.assertFalse(watcher.is_city_apartment_target_area("Dejlig lejlighed paa Vesterbro"))
+
+    def test_rejects_broenshoej_vanloese_valby_and_kastrup(self):
+        rejected = (
+            "Frederikssundsvej 100, 2700 Brønshøj",
+            "Jernbane Alle 12, 2720 Vanløse",
+            "Toftegårds Alle 5, 2500 Valby",
+            "Amager Landevej 10, 2770 Kastrup",
+        )
+        self.assertTrue(all(not watcher.is_city_apartment_target_area(text) for text in rejected))
 
     def test_rejects_non_target_areas(self):
         self.assertFalse(watcher.is_city_apartment_target_area("Saxovej 75, Post nr. 5210 Odense"))
         self.assertFalse(watcher.is_city_apartment_target_area("Kildevej 12, Post nr. 2600 Glostrup"))
         self.assertFalse(watcher.is_city_apartment_target_area("Bronzebakken 66, Post nr. 3200 Helsinge"))
-        self.assertFalse(watcher.is_city_apartment_target_area("Noerrebrogade 1, Post nr. 2200 Koebenhavn N"))
 
 
 class CityApartmentParsingTests(unittest.TestCase):
