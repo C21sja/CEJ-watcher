@@ -1,5 +1,7 @@
 import hashlib
-from urllib.parse import urlencode
+import re
+from html import unescape
+from urllib.parse import urlencode, urljoin, urlparse
 
 from housing_policy import (
     canonical_listing_key,
@@ -7,6 +9,7 @@ from housing_policy import (
     contains_restricted_eligibility,
     extract_amount,
     extract_postcode,
+    is_preferred_postcode,
     listing_matches_policy,
     normalize_text,
 )
@@ -136,3 +139,152 @@ def fetch_rle(fetch_json):
     data = fetch_json(RLE_URL)
     document = data.get("result") if isinstance(data, dict) else None
     return parse_rle_document(document)
+
+
+CPH_DOCUMENT_URLS = {
+    "home": "https://cphhomes.dk/",
+    "holmen": "https://cphhomes.dk/holmen/",
+    "sydhavnen": "https://cphhomes.dk/sydhavnen/",
+    "orestaden": "https://cphhomes.dk/orestaden/",
+    "bryggen": "https://cphhomes.dk/bryggen/",
+    "engholmene": "https://cphhomes.dk/engholmene/",
+}
+CPH_AVAILABILITY_TERMS = (
+    "ledig",
+    "udlejes",
+    "husleje",
+    "book fremvisning",
+    "ansog",
+    "skriv dig op",
+    "tilmelding",
+    "interesseliste",
+    "boliger til leje",
+)
+CPH_EXTERNAL_ACTION_HOSTS = frozenset()  # Add only exact hosts backed by a captured live application link.
+CPH_MAX_DISCOVERED_POSTS = 50
+
+
+def _cph_main(html):
+    main = re.search(r"<main\b[^>]*>([\s\S]*?)</main\s*>", html, re.IGNORECASE)
+    if not main:
+        raise SourceContractError("CPH Homes page has no main content container")
+    return re.sub(
+        r"<script[\s\S]*?</script\s*>|<style[\s\S]*?</style\s*>",
+        " ",
+        main.group(1),
+        flags=re.IGNORECASE,
+    )
+
+
+def _safe_cph_link(base_url, href):
+    absolute = urljoin(base_url, unescape(href))
+    parsed = urlparse(absolute)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname not in {"cphhomes.dk", "www.cphhomes.dk"}
+        or parsed.port not in {None, 443}
+    ):
+        return None
+    return parsed._replace(query="", fragment="").geturl()
+
+
+def discover_cphomes_post_urls(home_html):
+    content = _cph_main(home_html)
+    discovered = set()
+    for article in re.findall(r"<article\b[^>]*>([\s\S]*?)</article\s*>", content, re.IGNORECASE):
+        for href in re.findall(r'href=["\']([^"\']+)["\']', article, re.IGNORECASE):
+            safe_link = _safe_cph_link(CPH_DOCUMENT_URLS["home"], href)
+            if safe_link and safe_link not in CPH_DOCUMENT_URLS.values():
+                discovered.add(safe_link)
+    if len(discovered) > CPH_MAX_DISCOVERED_POSTS:
+        raise SourceContractError("CPH Homes article discovery exceeded its defensive limit")
+    return sorted(discovered)
+
+
+def _cph_plain_html(value):
+    return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", value))).strip()
+
+
+def _cph_event(key, url, html):
+    content = _cph_main(html)
+    main_text = _cph_plain_html(content)
+    normalized = normalize_text(f"{key} {main_text}")
+    matched_terms = {term for term in CPH_AVAILABILITY_TERMS if term in normalized}
+    signals = {f"term:{term}" for term in matched_terms}
+    for amount in re.findall(r"\d[\d.\s]*\s*kr", main_text, re.IGNORECASE):
+        signals.add(f"price:{extract_amount(amount)}")
+    for postcode in re.findall(r"\b\d{4}\b", main_text):
+        if is_preferred_postcode(int(postcode)):
+            signals.add(f"postcode:{postcode}")
+    for href, label in re.findall(
+        r'<a[^>]+href=["\']([^"\']+)["\'][^>]*>([\s\S]*?)</a\s*>', content, re.IGNORECASE
+    ):
+        if any(term in normalize_text(label) for term in CPH_AVAILABILITY_TERMS):
+            absolute = urljoin(url, unescape(href))
+            parsed = urlparse(absolute)
+            if parsed.scheme != "https" or not parsed.hostname or parsed.port not in {None, 443}:
+                continue
+            if (
+                parsed.hostname in {"cphhomes.dk", "www.cphhomes.dk"}
+                or parsed.hostname in CPH_EXTERNAL_ACTION_HOSTS
+            ):
+                signals.add(f"application-link:{absolute}")
+            else:
+                signals.add(f"external-application-review:{parsed.hostname}")
+    has_evidence = bool(matched_terms)
+    headline = (
+        "CPH Homes availability signal - inspect now" if has_evidence else "CPH Homes monitoring ready"
+    )
+    event = _readiness_event(
+        f"readiness:cphhomes:{key}",
+        "CPH Homes",
+        headline,
+        (
+            "This relevant page contains availability evidence; inspect it before applying."
+            if has_evidence
+            else "This relevant CPH Homes page is being monitored for material changes."
+        ),
+        _signature(f"{normalized}|{'|'.join(sorted(signals))}"),
+        url,
+        urgent=False,
+    )
+    event.update(
+        {
+            "signals": sorted(signals),
+            "baseline_headline": headline,
+            "change_headline": (
+                "CPH Homes availability signal - inspect now"
+                if has_evidence
+                else "CPH Homes changed - inspect now"
+            ),
+            "kind": "inspection",
+        }
+    )
+    return event
+
+
+def parse_cphomes_documents(documents, discovered_urls=()):
+    if not isinstance(documents, dict):
+        raise SourceContractError("CPH Homes documents must be a URL-to-HTML mapping")
+    key_by_url = {url: key for key, url in CPH_DOCUMENT_URLS.items()}
+    for url in discovered_urls:
+        safe_url = _safe_cph_link(CPH_DOCUMENT_URLS["home"], url)
+        if safe_url != url:
+            raise SourceContractError(
+                "CPH Homes discovered post URL is not an exact same-host HTTPS URL"
+            )
+        slug = urlparse(url).path.strip("/").replace("/", ":")
+        key_by_url[url] = f"post:{slug or hashlib.sha256(url.encode('utf-8')).hexdigest()[:12]}"
+    events = [
+        _cph_event(key_by_url[url], url, html)
+        for url, html in documents.items()
+        if url in key_by_url
+    ]
+    return SourceSnapshot(source="CPH Homes", events=sorted(events, key=lambda event: event["id"]))
+
+
+def fetch_cphomes(fetch_text):
+    documents = {url: fetch_text(url) for url in CPH_DOCUMENT_URLS.values()}
+    post_urls = discover_cphomes_post_urls(documents[CPH_DOCUMENT_URLS["home"]])
+    documents.update({url: fetch_text(url) for url in post_urls})
+    return parse_cphomes_documents(documents, post_urls)
