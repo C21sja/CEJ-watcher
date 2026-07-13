@@ -27,6 +27,7 @@ JULILIVING_PAGE_URL = "https://juliliving.dk/find-lejebolig/"
 JULILIVING_AJAX_FALLBACK_URL = "https://juliliving.dk/wp-admin/admin-ajax.php"
 CWOBEL_ISLANDS_BRYGGE_URL = "https://www.cwobel-ejendomme.dk/bolig/ledige-lejemaal/storkoebenhavn/islands-brygge/"
 PROPSTEP_SEARCH_URL = "https://app.propstep.com/api/search"
+AKF_PROPSTEP_COMPANY_ID = "5db6d00f4e5146201ae72ada"
 SWEET_HOMES_LIST_URL = "https://sweet-homes.dk/lejebolig/"
 HEADERS = {
     "x-remix-response": "yes",
@@ -978,6 +979,38 @@ def fetch_propstep_apartments():
                     effective_status = prop.get("status")
                 property_details = prop.get("propertyDetails") or {}
 
+                company_id = prop.get("companyId") or group.get("companyId")
+                is_akf = company_id == AKF_PROPSTEP_COMPANY_ID
+                restricted_text = ""
+                if is_akf:
+                    if prop.get("transactionStatus") != 1:
+                        continue
+                    is_waitlist = any(
+                        is_truthy(value)
+                        for value in (
+                            prop.get("waitingList"),
+                            prop.get("isWaitingList"),
+                            property_details.get("waitingList"),
+                            group.get("waitingList"),
+                        )
+                    )
+                    if is_waitlist:
+                        continue
+                    restricted_text = " ".join(
+                        str(value or "")
+                        for value in (
+                            property_details.get("onlyFor"),
+                            property_details.get("langToDescription"),
+                            prop.get("description"),
+                            prop.get("langToDescription"),
+                            group.get("description"),
+                            group.get("langToDescription"),
+                        )
+                    )
+                    if contains_restricted_eligibility(restricted_text):
+                        continue
+                source_name = "AKF via Propstep" if is_akf else "Propstep"
+
                 apartments.append(
                     {
                         "id": f"propstep:{prop_id}",
@@ -987,9 +1020,12 @@ def fetch_propstep_apartments():
                         "location": {"formatted": location_text or "Unknown location"},
                         "availableFrom": (prop.get("transactionDetails") or {}).get("availableFrom") or "See link for info",
                         "url": f"https://propstep.com/da-DK/soeg?slug={slug}",
-                        "source": "Propstep",
+                        "source": source_name,
                         "size_sqm": extract_numeric_value(property_details.get("size")),
                         "rooms": extract_numeric_value(property_details.get("rooms")),
+                        "raw_text": restricted_text,
+                        "canonical_key": canonical_listing_key(location_text, "rent"),
+                        "source_priority": 20,
                     }
                 )
 

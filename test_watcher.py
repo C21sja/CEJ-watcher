@@ -104,6 +104,92 @@ class PropstepTests(unittest.TestCase):
         self.assertEqual(82, apartments[0]["size_sqm"])
         self.assertEqual(3, apartments[0]["rooms"])
 
+    @patch("watcher.post_json")
+    def test_classifies_public_akf_cards_without_changing_propstep_id(self, mock_post_json):
+        mock_post_json.return_value = {
+            "searchResults": [
+                {
+                    "companyId": "5db6d00f4e5146201ae72ada",
+                    "properties": [
+                        {
+                            "id": "akf-live",
+                            "slug": "akf-live",
+                            "name": "Nørrebrogade 10",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 10",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1750000},
+                            "propertyDetails": {"size": 70, "rooms": 2, "onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-reserved",
+                            "slug": "akf-reserved",
+                            "name": "Nørrebrogade 12",
+                            "transactionStatus": 2,
+                            "location": {
+                                "address": "Nørrebrogade 12",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1700000},
+                            "propertyDetails": {"onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-student",
+                            "slug": "akf-student",
+                            "name": "Nørrebrogade 14",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 14",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 900000},
+                            "propertyDetails": {"onlyFor": "Kun for studerende"},
+                        },
+                        {
+                            "id": "akf-waitlist",
+                            "slug": "akf-waitlist",
+                            "name": "Nørrebrogade 16",
+                            "transactionStatus": 1,
+                            "waitingList": True,
+                            "location": {
+                                "address": "Nørrebrogade 16",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1000000},
+                            "propertyDetails": {"onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-localized-restriction",
+                            "slug": "akf-localized-restriction",
+                            "name": "Nørrebrogade 18",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 18",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1100000},
+                            "propertyDetails": {
+                                "onlyFor": "",
+                                "langToDescription": {"da": "Kun for seniorer"},
+                            },
+                        },
+                    ],
+                }
+            ],
+            "totalProperties": 5,
+        }
+        listings = watcher.fetch_propstep_apartments()
+        self.assertEqual(["propstep:akf-live"], [item["id"] for item in listings])
+        self.assertEqual("AKF via Propstep", listings[0]["source"])
+        mock_post_json.assert_called_once()
+
 
 class CapitalBoligTests(unittest.TestCase):
     @patch("watcher.fetch_url_text")
