@@ -180,6 +180,22 @@ def canonical_listing_key(address, transaction_type):
     return f"{normalize_text(transaction_type)}:{normalize_text(address)}"
 
 
+def deduplicate_listings(listings):
+    selected = {}
+    key_order = []
+
+    for listing in listings:
+        key = listing.get("canonical_key") or f"id:{listing.get('id')}"
+        if key not in selected:
+            selected[key] = listing
+            key_order.append(key)
+            continue
+        if listing.get("source_priority", 100) < selected[key].get("source_priority", 100):
+            selected[key] = listing
+
+    return [selected[key] for key in key_order]
+
+
 def listing_matches_policy(listing):
     location = listing.get("location") or {}
     location_text = location.get("formatted", "") if isinstance(location, dict) else str(location)

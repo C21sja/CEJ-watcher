@@ -12,6 +12,7 @@ from housing_policy import (
     canonical_listing_key,
     contains_commercial_use,
     contains_restricted_eligibility,
+    deduplicate_listings,
     extract_amount,
     extract_postcode,
     is_preferred_postcode,
@@ -351,12 +352,15 @@ def build_embed_title(name, source):
     return f"[{source}] {name}"
 
 
-def format_price_for_display(raw_price):
+def format_price_for_display(raw_price, price_period="month"):
     price_amount = extract_price_amount(raw_price)
     if price_amount is None:
         text = str(raw_price).strip()
         return text or "Unknown"
-    return f"{price_amount} kr/month"
+    formatted_amount = f"{price_amount:,}".translate(str.maketrans(",.", ".,"))
+    if price_period == "total":
+        return f"{formatted_amount} kr."
+    return f"{formatted_amount} kr/month"
 
 
 def build_listing_fields(listing):
@@ -364,7 +368,10 @@ def build_listing_fields(listing):
         {"name": "Status", "value": str(listing.get("status", "unknown")), "inline": True},
         {
             "name": "Price",
-            "value": format_price_for_display(listing.get("price", {}).get("amount", "Unknown")),
+            "value": format_price_for_display(
+                listing.get("price", {}).get("amount", "Unknown"),
+                listing.get("price_period", "month"),
+            ),
             "inline": True,
         },
     ]
