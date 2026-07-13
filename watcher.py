@@ -710,8 +710,10 @@ def parse_city_apartment_listings(html):
         text = re.sub(r'<[^>]+>', ' ', article)
         text = re.sub(r'\s+', ' ', text).strip()
 
-        if not is_city_apartment_target_area(f"{title} {text}"):
+        listing_text = f"{title} {text}"
+        if not is_city_apartment_target_area(listing_text):
             continue
+        post_code = extract_postcode(listing_text)
 
         price_match = re.search(r'([\d\.]+)\s*DK', text)
         price = price_match.group(1).replace('.', '') if price_match else "Unknown"
@@ -721,7 +723,7 @@ def parse_city_apartment_listings(html):
             "status": "Available",
             "name": title,
             "price": {"amount": price},
-            "location": {"formatted": title},
+            "location": {"formatted": f"{title}, {post_code}"},
             "availableFrom": "See link for info",
             "url": link,
             "source": "City Apartment"

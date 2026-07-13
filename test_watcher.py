@@ -419,6 +419,12 @@ class CityApartmentParsingTests(unittest.TestCase):
         self.assertEqual("12500", apt["price"]["amount"])
         self.assertEqual("City Apartment", apt["source"])
 
+    def test_parsed_target_listing_survives_global_policy_filter(self):
+        apt = watcher.parse_city_apartment_listings(self.SAMPLE_HTML)[0]
+
+        self.assertTrue(watcher.matches_general_listing_filters(apt))
+        self.assertIn("1123", apt["location"]["formatted"])
+
     def test_headers_include_accept_language_to_avoid_waf_block(self):
         # cityapartment.dk returns HTTP 454 for requests missing Accept-Language
         # (confirmed empirically against the live site).

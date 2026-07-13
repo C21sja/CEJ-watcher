@@ -29,6 +29,7 @@ RESTRICTED_PATTERNS = (
     r"\b(?:minimum|min)\s*(?:alder)?\s*(?:55|60|65)\b",
     r"\b(?:55|60|65)\s*aar\b",
     r"\b(?:skal|forudsaetter)\s+(?:vaere\s+)?medlem\s+af\b",
+    r"\b(?:kober(?:en)?\s+)?(?:bliver\s+)?medlem\s+af\s+(?:en\s+)?andelsforening(?:en)?\b",
     r"\b(?:kraever|krav\s+om)\s+medlemskab\b",
     r"\b(?:pensionsordning|pensionsselskab)\b.{0,40}\b(?:krav|fortrinsret|kun)\b",
 )
@@ -36,11 +37,14 @@ RESTRICTED_PATTERNS = (
 NEGATED_RESTRICTION_PATTERNS = (
     r"\b(?:intet|ingen|ikke noget)\s+medlemskab\s+(?:er\s+)?(?:krav|kraeves)\b",
     r"\bmedlemskab\s+(?:er\s+)?ikke\s+(?:et\s+)?krav\b",
+    r"\bmedlemskab\s+kraeves\s+ikke\b",
+    r"\bingen\s+krav\s+om\s+medlemskab\b",
 )
 
 COMMERCIAL_PATTERNS = (
     r"\b(?:erhvervslejemal|erhvervslokale|kontorlokale|butikslokale|lagerlokale|restaurantlokale|kliniklokale)\b",
     r"\b(?:udlejes|anvendes|indrettet)\s+(?:til|som)\s+(?:erhverv|kontor|butik|lager|restaurant|klinik)\b",
+    r"\b(?:erhverv|kontor|butik|lager|restaurant|klinik)\s+til\s+leje\b",
     r"\b(?:type|kategori)\s+(?:erhverv|kontor|butik|lager|restaurant|klinik)\b",
 )
 
@@ -73,11 +77,14 @@ def extract_amount(value):
     if isinstance(value, (int, float)):
         return int(value)
 
-    match = re.search(r"\d[\d.\s,]*", str(value))
+    match = re.search(r"(-?)\s*(\d[\d.\s,]*)", str(value))
     if not match:
         return None
-    digits = re.sub(r"\D", "", match.group(0))
-    return int(digits) if digits else None
+    digits = re.sub(r"\D", "", match.group(2))
+    if not digits:
+        return None
+    amount = int(digits)
+    return -amount if match.group(1) else amount
 
 
 def extract_postcode(value):

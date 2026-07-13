@@ -72,6 +72,37 @@ class HousingPolicyTests(unittest.TestCase):
             contains_commercial_use("Bolig tæt på butikker og restauranter")
         )
 
+    def test_negated_membership_requirements_are_not_restricted(self):
+        self.assertFalse(contains_restricted_eligibility("Medlemskab kræves ikke"))
+        self.assertFalse(contains_restricted_eligibility("Ingen krav om medlemskab"))
+
+    def test_cooperative_membership_wording_depends_on_transaction_type(self):
+        base = {
+            "name": "Nørrebrogade 1",
+            "location": {"formatted": "Nørrebrogade 1, 2200 København N"},
+            "price": {"amount": 12000},
+            "description": "Køber bliver medlem af andelsforeningen",
+        }
+        self.assertFalse(listing_matches_policy(dict(base, transaction_type="rent")))
+        self.assertTrue(
+            listing_matches_policy(
+                dict(base, transaction_type="cooperative_sale", price={"amount": 2_000_000})
+            )
+        )
+
+    def test_explicit_office_for_rent_is_commercial_but_proximity_is_not(self):
+        self.assertTrue(contains_commercial_use("Kontor til leje"))
+        self.assertFalse(contains_commercial_use("Bolig tæt på butikker og restauranter"))
+
+    def test_textual_negative_price_stays_negative_and_is_rejected(self):
+        listing = {
+            "name": "Nørrebrogade 1",
+            "location": {"formatted": "Nørrebrogade 1, 2200 København N"},
+            "price": {"amount": "-1.000 kr."},
+        }
+        self.assertEqual(-1000, extract_amount("-1.000 kr."))
+        self.assertFalse(listing_matches_policy(listing))
+
     def test_policy_rejects_restricted_and_commercial_listings(self):
         base = {
             "name": "Nørrebrogade 1",
