@@ -1,0 +1,34 @@
+{
+  "captured_at": "2026-07-14T07:50:00Z",
+  "source_page": "https://www.kobenhavn.dk/bolig",
+  "note": "One-time read-only scan of every distinct HTTPS origin host behind an in-area rental below 15,000 kr. (rental section) or cooperative-sale row (Andelsbolig sections). akutbolig.dk was the sole rental-section origin, but a live probe of its category pages (e.g. https://www.akutbolig.dk/koebenhavn-v) found no server-rendered '/vis/{id}' markup and a 404 on the direct listing URL: the site now appears to be a client-rendered app, so the previously-assumed static-HTML extractor does not work against it and it is not registered as verified. See docs/latest-source-scan.md.",
+  "origin_hosts": [
+    "akutbolig.dk",
+    "adamschnack.dk",
+    "brikk.dk",
+    "danbolig.dk",
+    "edc.dk",
+    "eltoftnielsen.dk",
+    "estate.dk",
+    "home.dk",
+    "nybolig.dk",
+    "realmaeglerne.dk",
+    "soeboe-ejendomme.dk",
+    "unikboligsalg.dk"
+  ],
+  "verified_hosts": [],
+  "pending_manual_review_hosts": [
+    "akutbolig.dk",
+    "adamschnack.dk",
+    "brikk.dk",
+    "danbolig.dk",
+    "edc.dk",
+    "eltoftnielsen.dk",
+    "estate.dk",
+    "home.dk",
+    "nybolig.dk",
+    "realmaeglerne.dk",
+    "soeboe-ejendomme.dk",
+    "unikboligsalg.dk"
+  ]
+}

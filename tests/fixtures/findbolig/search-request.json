@@ -1,0 +1,13 @@
+{
+  "pageSize": 100,
+  "page": 0,
+  "orderBy": "Created",
+  "orderDirection": "DESC",
+  "facets": [],
+  "filters": {
+    "PropertyCompanyId": [
+      "73d07df9-6e80-4b79-da2d-08dbb5297ffe"
+    ]
+  },
+  "mixedResults": false
+}

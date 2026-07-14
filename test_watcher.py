@@ -104,6 +104,92 @@ class PropstepTests(unittest.TestCase):
         self.assertEqual(82, apartments[0]["size_sqm"])
         self.assertEqual(3, apartments[0]["rooms"])
 
+    @patch("watcher.post_json")
+    def test_classifies_public_akf_cards_without_changing_propstep_id(self, mock_post_json):
+        mock_post_json.return_value = {
+            "searchResults": [
+                {
+                    "companyId": "5db6d00f4e5146201ae72ada",
+                    "properties": [
+                        {
+                            "id": "akf-live",
+                            "slug": "akf-live",
+                            "name": "Nørrebrogade 10",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 10",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1750000},
+                            "propertyDetails": {"size": 70, "rooms": 2, "onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-reserved",
+                            "slug": "akf-reserved",
+                            "name": "Nørrebrogade 12",
+                            "transactionStatus": 2,
+                            "location": {
+                                "address": "Nørrebrogade 12",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1700000},
+                            "propertyDetails": {"onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-student",
+                            "slug": "akf-student",
+                            "name": "Nørrebrogade 14",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 14",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 900000},
+                            "propertyDetails": {"onlyFor": "Kun for studerende"},
+                        },
+                        {
+                            "id": "akf-waitlist",
+                            "slug": "akf-waitlist",
+                            "name": "Nørrebrogade 16",
+                            "transactionStatus": 1,
+                            "waitingList": True,
+                            "location": {
+                                "address": "Nørrebrogade 16",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1000000},
+                            "propertyDetails": {"onlyFor": ""},
+                        },
+                        {
+                            "id": "akf-localized-restriction",
+                            "slug": "akf-localized-restriction",
+                            "name": "Nørrebrogade 18",
+                            "transactionStatus": 1,
+                            "location": {
+                                "address": "Nørrebrogade 18",
+                                "postalcode": "2200",
+                                "city": "København N",
+                            },
+                            "transactionDetails": {"price": 1100000},
+                            "propertyDetails": {
+                                "onlyFor": "",
+                                "langToDescription": {"da": "Kun for seniorer"},
+                            },
+                        },
+                    ],
+                }
+            ],
+            "totalProperties": 5,
+        }
+        listings = watcher.fetch_propstep_apartments()
+        self.assertEqual(["propstep:akf-live"], [item["id"] for item in listings])
+        self.assertEqual("AKF via Propstep", listings[0]["source"])
+        mock_post_json.assert_called_once()
+
 
 class CapitalBoligTests(unittest.TestCase):
     @patch("watcher.fetch_url_text")
@@ -168,24 +254,22 @@ class CEJFetchTests(unittest.TestCase):
         self.assertEqual([{"id": "cej-1", "status": 1}], apartments)
         mock_sleep.assert_called_once_with(1)
 
-    @patch("watcher.fetch_sweet_homes_apartments", return_value=[])
-    @patch("watcher.fetch_propstep_apartments", return_value=[])
-    @patch("watcher.fetch_cwobel_apartments", return_value=[])
-    @patch("watcher.fetch_juliliving_apartments", return_value=[])
-    @patch("watcher.fetch_capitalbolig_apartments", return_value=[])
-    @patch("watcher.fetch_city_apartments", return_value=[])
-    @patch("watcher.fetch_cej_apartments", side_effect=watcher.WatcherError("CEJ API rate limited after 3 attempts."))
-    def test_fetch_apartments_skips_rate_limited_cej(
-        self,
-        _mock_fetch_cej,
-        _mock_fetch_city,
-        _mock_fetch_capital,
-        _mock_fetch_juli,
-        _mock_fetch_cwobel,
-        _mock_fetch_propstep,
-        _mock_fetch_sweet_homes,
-    ):
-        self.assertEqual([], watcher.fetch_apartments())
+    def test_fetch_due_sources_isolates_a_rate_limited_cej_failure(self):
+        # Scheduling itself now belongs to test_source_scheduler.py; this
+        # keeps only the CEJ-specific behavior: a rate-limit failure must
+        # not suppress a sibling source that succeeds in the same cycle.
+        from housing_sources import SourceSnapshot, SourceSpec
+
+        def failing_cej():
+            raise watcher.WatcherError("CEJ API rate limited after 3 attempts.")
+
+        registry = [
+            SourceSpec("CEJ", "fast", failing_cej, baseline=False),
+            SourceSpec("City Apartment", "fast", lambda: SourceSnapshot("City Apartment"), baseline=False),
+        ]
+        snapshots, succeeded = watcher.fetch_due_sources(registry, now=0.0, next_due={})
+        self.assertEqual(["City Apartment"], [snapshot.source for snapshot in snapshots])
+        self.assertEqual({"City Apartment"}, succeeded)
 
 
 class DiscordNotificationTests(unittest.TestCase):
@@ -356,24 +440,32 @@ class CityApartmentAreaFilterTests(unittest.TestCase):
     def test_accepts_vesterbro_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Istedgade 5 Post nr. 1650"))
 
-    def test_accepts_frederiksberg_by_postcode(self):
+    def test_accepts_frederiksberg_and_koebenhavn_nv_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Falkoner Alle 1 Post nr. 2000"))
+        self.assertTrue(watcher.is_city_apartment_target_area("Lærkevej 10, 2400 København NV"))
 
     def test_accepts_oesterbro_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Oesterbrogade 1 Post nr. 2100"))
 
     def test_accepts_amager_by_postcode(self):
         self.assertTrue(watcher.is_city_apartment_target_area("Amagerbrogade 1 Post nr. 2300"))
-        self.assertTrue(watcher.is_city_apartment_target_area("Postnummer 2770 Kastrup"))
 
-    def test_accepts_by_keyword_when_postcode_missing(self):
-        self.assertTrue(watcher.is_city_apartment_target_area("Dejlig lejlighed paa Vesterbro"))
+    def test_rejects_keyword_only_location_when_postcode_missing(self):
+        self.assertFalse(watcher.is_city_apartment_target_area("Dejlig lejlighed paa Vesterbro"))
+
+    def test_rejects_broenshoej_vanloese_valby_and_kastrup(self):
+        rejected = (
+            "Frederikssundsvej 100, 2700 Brønshøj",
+            "Jernbane Alle 12, 2720 Vanløse",
+            "Toftegårds Alle 5, 2500 Valby",
+            "Amager Landevej 10, 2770 Kastrup",
+        )
+        self.assertTrue(all(not watcher.is_city_apartment_target_area(text) for text in rejected))
 
     def test_rejects_non_target_areas(self):
         self.assertFalse(watcher.is_city_apartment_target_area("Saxovej 75, Post nr. 5210 Odense"))
         self.assertFalse(watcher.is_city_apartment_target_area("Kildevej 12, Post nr. 2600 Glostrup"))
         self.assertFalse(watcher.is_city_apartment_target_area("Bronzebakken 66, Post nr. 3200 Helsinge"))
-        self.assertFalse(watcher.is_city_apartment_target_area("Noerrebrogade 1, Post nr. 2200 Koebenhavn N"))
 
 
 class CityApartmentParsingTests(unittest.TestCase):
@@ -401,6 +493,17 @@ class CityApartmentParsingTests(unittest.TestCase):
     </article>
     """
 
+    @staticmethod
+    def _listing_html(title, postcode):
+        return f"""
+        <article class="elementor-post cityapartments type-cityapartments">
+          <h3><a href="https://cityapartment.dk/da/cityapartments/historical/">{title}</a></h3>
+          <p>Post nr. {postcode}</p>
+          <p>65 m2</p>
+          <p>12500 DKK / pr. maaned</p>
+        </article>
+        """
+
     def test_only_returns_cards_in_target_areas(self):
         apartments = watcher.parse_city_apartment_listings(self.SAMPLE_HTML)
 
@@ -411,6 +514,25 @@ class CityApartmentParsingTests(unittest.TestCase):
         self.assertEqual("12500", apt["price"]["amount"])
         self.assertEqual("City Apartment", apt["source"])
 
+    def test_parsed_target_listing_survives_global_policy_filter(self):
+        apt = watcher.parse_city_apartment_listings(self.SAMPLE_HTML)[0]
+
+        self.assertTrue(watcher.matches_general_listing_filters(apt))
+        self.assertIn("1123", apt["location"]["formatted"])
+
+    def test_labeled_outer_postcode_wins_over_earlier_year_like_title_number(self):
+        html = self._listing_html("Historisk 1800 Ejendom", 2605)
+
+        self.assertEqual([], watcher.parse_city_apartment_listings(html))
+
+    def test_labeled_target_postcode_is_stored_and_passes_global_policy(self):
+        html = self._listing_html("Historisk 1800 Ejendom", 1123)
+
+        apt = watcher.parse_city_apartment_listings(html)[0]
+
+        self.assertEqual(1123, watcher.extract_postcode(apt["location"]["formatted"]))
+        self.assertTrue(watcher.matches_general_listing_filters(apt))
+
     def test_headers_include_accept_language_to_avoid_waf_block(self):
         # cityapartment.dk returns HTTP 454 for requests missing Accept-Language
         # (confirmed empirically against the live site).
@@ -419,32 +541,14 @@ class CityApartmentParsingTests(unittest.TestCase):
 
 
 class FastSlowSourceSplitTests(unittest.TestCase):
-    def test_fast_and_slow_source_names_do_not_overlap(self):
-        self.assertEqual(set(), watcher.FAST_SOURCE_NAMES & watcher.SLOW_SOURCE_NAMES)
-
-    @patch("watcher.fetch_sweet_homes_apartments", return_value=[{"id": "sh"}])
-    @patch("watcher.fetch_propstep_apartments", return_value=[{"id": "ps"}])
-    @patch("watcher.fetch_city_apartments", return_value=[{"id": "ca"}])
-    @patch("watcher.fetch_cej_apartments", return_value=[{"id": "cej", "status": "available"}])
-    def test_fetch_fast_source_apartments_covers_all_fast_sources(
-        self, _mock_cej, _mock_city, _mock_propstep, _mock_sweethomes
-    ):
-        items = watcher.fetch_fast_source_apartments()
-        ids = {item["id"] for item in items}
-        self.assertEqual({"cej", "ca", "ps", "sh"}, ids)
-
-    @patch("watcher.fetch_cwobel_apartments", return_value=[{"id": "cwobel"}])
-    @patch("watcher.fetch_juliliving_apartments", return_value=[{"id": "juli"}])
-    @patch("watcher.fetch_capitalbolig_apartments", return_value=[{"id": "capital"}])
-    def test_fetch_slow_source_apartments_covers_all_slow_sources(
-        self, _mock_capital, _mock_juli, _mock_cwobel
-    ):
-        items = watcher.fetch_slow_source_apartments()
-        ids = {item["id"] for item in items}
-        self.assertEqual({"capital", "juli", "cwobel"}, ids)
-
+    # The hard-coded fast/slow name-group tests were replaced by the
+    # cadence-aware registry in test_source_scheduler.py; this class keeps
+    # only the interval sanity check that has no scheduler-specific home.
     def test_slow_source_interval_is_much_slower_than_hot_tier(self):
         self.assertGreater(watcher.SLOW_SOURCE_INTERVAL_SECONDS, watcher.POLL_INTERVALS["HOT"])
+
+    def test_readiness_source_interval_is_slower_than_the_ten_minute_tier(self):
+        self.assertGreater(watcher.READINESS_SOURCE_INTERVAL_SECONDS, watcher.SLOW_SOURCE_INTERVAL_SECONDS)
 
 
 if __name__ == "__main__":
