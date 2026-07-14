@@ -1,7 +1,7 @@
 import hashlib
 import re
 from html import unescape
-from urllib.parse import urlparse
+from urllib.parse import urljoin, urlparse
 
 from housing_policy import (
     canonical_listing_key,
@@ -15,29 +15,61 @@ from housing_sources import SourceContractError, SourceSnapshot
 PAGE_URL = "https://www.kobenhavn.dk/bolig"
 NEGATIVE_MARKERS = ("ikke til salg", "solgt", "udlejet", "ikke laengere aktiv", "fjernet")
 
+# Row markup is verified live: each listing is a `<div class="row coloN">`
+# (N is numeric, unlike the `coloh` header/label rows) containing plain
+# `<div class="col-xs-...">` cells rather than an HTML table. Rental rows
+# put the origin link in the first (address) cell; cooperative-sale rows
+# put it in the last ("Mægler"/broker) cell, and their address cell omits
+# the postcode/city, which instead comes from the section heading.
+_ROW_START = re.compile(r'<div class="row colo\d', re.IGNORECASE)
+_HEADING = re.compile(r"<h4[^>]*>([\s\S]*?)</h4\s*>", re.IGNORECASE)
+_CELL = re.compile(r'<div class="col-xs-\d[^"]*"[^>]*>([\s\S]*?)</div\s*>', re.IGNORECASE)
+_SALE_HEADING = re.compile(r"(\d{4})\s+(.+?)\s*-\s*andelsbolig", re.IGNORECASE)
+
 
 def _text(value):
     return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", value))).strip()
 
 
 def _rows(section):
-    return re.findall(r"<tr[^>]*>([\s\S]*?)</tr\s*>", section, re.IGNORECASE)
+    starts = [match.start() for match in _ROW_START.finditer(section)]
+    ends = starts[1:] + [len(section)]
+    return [section[start:end] for start, end in zip(starts, ends)]
 
 
-def _candidate_from_row(row, transaction_type):
-    link = re.search(r'href=["\']([^"\']+)["\'][^>]*>([\s\S]*?)</a\s*>', row, re.IGNORECASE)
+def _absolute(href):
+    return urljoin(PAGE_URL, href)
+
+
+def _candidate_from_row(row, transaction_type, location_suffix=None):
+    cells = _CELL.findall(row)
+    if len(cells) < 4:
+        return None
+    address_text = _text(cells[0])
+    if not address_text:
+        return None
+    address = f"{address_text}, {location_suffix}" if location_suffix else address_text
+
+    origin_cell = cells[-1] if transaction_type == "cooperative_sale" else cells[0]
+    link = re.search(r'href=["\']([^"\']+)["\']', origin_cell, re.IGNORECASE)
     if not link:
         return None
-    cells = [_text(cell) for cell in re.findall(r"<td[^>]*>([\s\S]*?)</td\s*>", row, re.IGNORECASE)]
-    address = _text(link.group(2))
-    price = extract_amount(cells[1]) if len(cells) > 1 else None
-    rooms = extract_amount(cells[2]) if len(cells) > 2 else None
-    size = extract_amount(cells[3]) if len(cells) > 3 else None
+    origin_url = _absolute(unescape(link.group(1)))
+    parsed_origin = urlparse(origin_url)
+    if parsed_origin.scheme != "https" or parsed_origin.netloc.lower() in {
+        "www.kobenhavn.dk",
+        "kobenhavn.dk",
+    }:
+        return None
+
+    price = extract_amount(_text(cells[1]))
+    rooms = extract_amount(_text(cells[2]))
+    size = extract_amount(_text(cells[3]))
     if not price or not rooms or not size:
         return None
-    origin_url = link.group(1)
-    origin_host = urlparse(origin_url).netloc.lower().removeprefix("www.")
-    origin_id = urlparse(origin_url).path.rstrip("/").split("/")[-1]
+
+    origin_host = parsed_origin.netloc.lower().removeprefix("www.")
+    origin_id = parsed_origin.path.rstrip("/").split("/")[-1] or origin_host
     candidate = {
         "candidate_id": f"{transaction_type}:{origin_host}:{origin_id}",
         "origin_host": origin_host,
@@ -57,7 +89,7 @@ def _candidate_from_row(row, transaction_type):
         "location": {"formatted": address},
         "price": {"amount": price},
         "transaction_type": transaction_type,
-        "price_limit": 15000 if transaction_type == "rent" else 2800000,
+        "price_limit": candidate["price_limit"],
         "price_limit_inclusive": False,
     }
     return candidate if listing_matches_policy(probe) else None
@@ -67,19 +99,28 @@ def parse_candidates(html):
     if "Lejligheder til leje" not in html:
         raise SourceContractError("Kobenhavn.dk rental section is missing")
     candidates = []
-    headings = list(re.finditer(r"<h4[^>]*>([\s\S]*?)</h4\s*>", html, re.IGNORECASE))
+    headings = list(_HEADING.finditer(html))
     for index, heading in enumerate(headings):
-        title = normalize_text(_text(heading.group(1)))
+        title = _text(heading.group(1))
         end = headings[index + 1].start() if index + 1 < len(headings) else len(html)
         section = html[heading.end() : end]
-        if "lejligheder til leje" in title:
-            transaction_type = "rent"
-        elif "andelsbolig" in title:
+        normalized_title = normalize_text(title)
+        sale_match = _SALE_HEADING.match(title)
+        if "lejligheder til leje" in normalized_title:
+            transaction_type, location_suffix = "rent", None
+        elif sale_match:
             transaction_type = "cooperative_sale"
+            location_suffix = f"{sale_match.group(1)} {sale_match.group(2)}".strip()
         else:
             continue
         candidates.extend(
-            filter(None, (_candidate_from_row(row, transaction_type) for row in _rows(section)))
+            filter(
+                None,
+                (
+                    _candidate_from_row(row, transaction_type, location_suffix)
+                    for row in _rows(section)
+                ),
+            )
         )
     return candidates
 
@@ -155,8 +196,20 @@ def _akutbolig_record(candidate, fetch_text):
     return html[marker.start() : end]
 
 
-# Extend this exact-host map only with a captured, tested record extractor.
-ORIGIN_VERIFIERS = {"akutbolig.dk": _akutbolig_record}
+# Extend this exact-host map only with a host whose live capture proves a
+# working, bounded record extractor. `_akutbolig_record` is kept available
+# because it correctly implements the "membership in a rendered inventory
+# page" pattern, but a live capture (12 July 2026) found akutbolig.dk has
+# since become a client-rendered app with no server-rendered `/vis/{id}`
+# markup on its category pages, so it is deliberately NOT registered here;
+# registering it would silently fail closed on every candidate. The same
+# scan found cooperative-sale rows redirecting to realmaeglerne.dk,
+# soeboe-ejendomme.dk, nybolig.dk, eltoftnielsen.dk, danbolig.dk, brikk.dk,
+# edc.dk, unikboligsalg.dk, estate.dk, home.dk, and adamschnack.dk. None of
+# these twelve hosts has a captured/tested extractor yet, so every current
+# candidate falls through to the manual-review path below instead of being
+# treated as a verified home. See docs/latest-source-scan.md.
+ORIGIN_VERIFIERS = {}
 
 
 def verify_candidate(candidate, fetch_text):

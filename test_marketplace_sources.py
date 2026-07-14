@@ -1,11 +1,13 @@
 import json
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from housing_sources.brikk import fetch_brikk, parse_brikk_page
 from housing_sources.kobenhavn_dk import (
     ORIGIN_VERIFIERS,
     _akutbolig_inventory_url,
+    _akutbolig_record,
     fetch_kobenhavn,
     parse_candidates,
     verify_candidate,
@@ -102,11 +104,33 @@ class BrikkSourceTests(unittest.TestCase):
             )
 
 
+# Row markup below mirrors a sanitized live capture (12 July 2026) of
+# https://www.kobenhavn.dk/bolig: plain `<div class="row coloN">` cards,
+# not an HTML table. Rental rows carry the origin link (akutbolig.dk) on
+# the address cell and already include the postcode/city in that cell's
+# text. Cooperative-sale rows link internally to kobenhavn.dk's own photo
+# popup from the address cell; the real broker link is in the final
+# "Mægler" cell, and the postcode/city comes only from the section
+# heading, not the row itself.
 KOBENHAVN_PAGE = """
-<h4>Lejligheder til leje, København og omegn.</h4>
-<table><tr><td><a href="https://www.akutbolig.dk/vis/486255">H.C. Andersens Boulevard 10, 2. th., 1553 København V</a></td><td>4500</td><td>1</td><td>20</td></tr></table>
-<h4>2450 København SV - Andelsbolig</h4>
-<table><tr><td><a href="https://broker.example/handelsvej-23">Händelsvej 23, 2. th., 2450 København SV</a></td><td>1.848.000</td><td>3</td><td>74</td></tr></table>
+<h4><strong>Lejligheder til leje, K\u00f8benhavn og omegn.</strong></h4>
+<div class="row coloh"><div class="col-xs-6 nopadding">Kort Adresse</div><div class="col-xs-2 text-right nopadding">Leje</div><div class="col-xs-1 text-right nopadding">Rum</div><div class="col-xs-1 text-right nopadding">m2</div><div class="col-xs-2 text-right nopadding">m2 pris</div></div>
+<div class="row colo0"><div class="col-xs-6 nopadding"><a href="https://www.akutbolig.dk/vis/486255#utm_source=dkby.net" target="_blank" rel="nofollow"><img src="//www.kobenhavn.dk/im/map.png" border="0">H.C. Andersens Boulevard, 1553 K\u00f8benhavn V</a></div>
+<div class="col-xs-2 text-right nopadding">4500</div>
+<div class="col-xs-1 text-right nopadding">1</div>
+<div class="col-xs-1 text-right nopadding">20</div>
+<div class="col-xs-2 text-right nopadding">225</div>
+</div>
+<h4><strong>2450 K\u00f8benhavn SV - Andelsbolig</strong></h4>
+<div class="row coloh"><div class="col-xs-3 nopadding">Se Adresse</div><div class="col-xs-2 text-right nopadding">Pris</div><div class="col-xs-1 text-right nopadding">Rum</div><div class="col-xs-1 text-right nopadding">m2</div><div class="col-xs-2 text-right nopadding">m2 pris</div><div class="col-xs-3 nopadding">M\u00e6gler</div></div>
+<div class="topoff" id="1723216"></div><div class="row colo1 text-success" onclick="toggleDiv('1723216')">
+<div class="col-xs-3 nopadding"><a href="//www.kobenhavn.dk/bolig#1723216" class="screenshot"><img src="//www.kobenhavn.dk/im/camera.png" border="0"></a>H\u00e4ndelsvej 23, 2 th</div>
+<div class="col-xs-2 text-right nopadding">1.848.000</div>
+<div class="col-xs-1 text-right nopadding">2</div>
+<div class="col-xs-1 text-right nopadding">61</div>
+<div class="col-xs-2 text-right nopadding">30.295</div>
+<div class="col-xs-3 nopadding overhide"><a href="https://broker.example/handelsvej-23" target="_blank" rel="nofollow">BROKER</a></div>
+</div>
 """
 
 
@@ -120,36 +144,59 @@ class KobenhavnSourceTests(unittest.TestCase):
         self.assertEqual(15000, rent["price_limit"])
         self.assertFalse(rent["price_limit_inclusive"])
 
+    def test_cooperative_row_uses_broker_link_and_heading_location(self):
+        sale = next(
+            item for item in parse_candidates(KOBENHAVN_PAGE) if item["transaction_type"] == "cooperative_sale"
+        )
+        self.assertEqual("broker.example", sale["origin_host"])
+        self.assertIn("2450 København SV", sale["address"])
+        self.assertEqual(2450, sale["postcode"])
+
     def test_rejects_stale_detail_and_accepts_current_inventory_membership(self):
+        # akutbolig.dk itself is not currently registered in ORIGIN_VERIFIERS
+        # (a live capture found it has become a client-rendered app with no
+        # server-rendered category-page markup), but `_akutbolig_record`
+        # correctly implements the general "membership in a rendered
+        # inventory page" pattern that a future host could reuse, so it is
+        # exercised here with the registry patched in for this one test.
         candidate = parse_candidates(KOBENHAVN_PAGE)[0]
-        stale = verify_candidate(candidate, lambda _url: "Denne bolig er ikke længere aktiv")
-        self.assertIsNone(stale)
+        with patch.dict(ORIGIN_VERIFIERS, {"akutbolig.dk": _akutbolig_record}):
+            stale = verify_candidate(candidate, lambda _url: "Denne bolig er ikke længere aktiv")
+            self.assertIsNone(stale)
 
-        def active_fetch(url):
-            if url.endswith("/koebenhavn-v"):
-                return (
-                    '<a href="/vis/486255">H.C. Andersens Boulevard 10, 2. th.</a>'
-                    "<span>4.750 kr.</span><span>1 værelse</span><span>20 m²</span>"
-                )
-            return ""
+            def active_fetch(url):
+                if url.endswith("/koebenhavn-v"):
+                    return (
+                        '<a href="/vis/486255">H.C. Andersens Boulevard 10, 2. th.</a>'
+                        "<span>4.750 kr.</span><span>1 værelse</span><span>20 m²</span>"
+                    )
+                return ""
 
-        active = verify_candidate(candidate, active_fetch)
+            active = verify_candidate(candidate, active_fetch)
         self.assertEqual("kobenhavn:rent:akutbolig.dk:486255", active["id"])
         self.assertEqual(4750, active["price"]["amount"])
 
     def test_unsupported_origin_is_not_fetched(self):
-        candidate = parse_candidates(KOBENHAVN_PAGE)[1]
+        candidate = next(
+            item for item in parse_candidates(KOBENHAVN_PAGE) if item["transaction_type"] == "cooperative_sale"
+        )
         self.assertIsNone(verify_candidate(candidate, lambda _url: "Til salg"))
 
-    def test_captured_origin_manifest_has_a_verifier_for_every_current_host(self):
+    def test_captured_origin_manifest_verifiers_are_a_subset_of_the_real_scan(self):
         manifest_path = Path("tests/fixtures/kobenhavn_dk/origin_manifest.json")
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         self.assertTrue(manifest["captured_at"])
-        self.assertEqual(set(manifest["origin_hosts"]), set(ORIGIN_VERIFIERS))
+        self.assertEqual(set(manifest["verified_hosts"]), set(ORIGIN_VERIFIERS))
+        self.assertTrue(set(ORIGIN_VERIFIERS) <= set(manifest["origin_hosts"]))
+        self.assertTrue(set(manifest["pending_manual_review_hosts"]) <= set(manifest["origin_hosts"]))
+        self.assertEqual(
+            set(manifest["origin_hosts"]),
+            set(manifest["verified_hosts"]) | set(manifest["pending_manual_review_hosts"]),
+        )
 
     def test_private_or_non_https_origin_is_never_fetched(self):
         candidate = dict(
-            parse_candidates(KOBENHAVN_PAGE)[1],
+            next(item for item in parse_candidates(KOBENHAVN_PAGE) if item["transaction_type"] == "cooperative_sale"),
             origin_url="http://127.0.0.1/listing",
             origin_host="127.0.0.1",
         )
@@ -172,7 +219,8 @@ class KobenhavnSourceTests(unittest.TestCase):
                 )
             return ""
 
-        snapshot = fetch_kobenhavn(fetch_text)
+        with patch.dict(ORIGIN_VERIFIERS, {"akutbolig.dk": _akutbolig_record}):
+            snapshot = fetch_kobenhavn(fetch_text)
         self.assertEqual(
             ["kobenhavn:rent:akutbolig.dk:486255"], [item["id"] for item in snapshot.listings]
         )
@@ -180,6 +228,17 @@ class KobenhavnSourceTests(unittest.TestCase):
         self.assertIn("broker.example", snapshot.diagnostics[0]["origin_url"])
         self.assertEqual("inspection", snapshot.events[0]["kind"])
         self.assertFalse(snapshot.events[0]["urgent"])
+
+    def test_fetch_treats_every_current_candidate_as_manual_review_by_default(self):
+        def fetch_text(url):
+            if url == "https://www.kobenhavn.dk/bolig":
+                return KOBENHAVN_PAGE
+            return ""
+
+        snapshot = fetch_kobenhavn(fetch_text)
+        self.assertEqual([], snapshot.listings)
+        self.assertEqual(2, len(snapshot.diagnostics))
+        self.assertTrue(all(item["outcome"] == "manual_review" for item in snapshot.diagnostics))
 
 
 if __name__ == "__main__":
