@@ -1,6 +1,15 @@
+import json
 import unittest
+from pathlib import Path
 
 from housing_sources.brikk import fetch_brikk, parse_brikk_page
+from housing_sources.kobenhavn_dk import (
+    ORIGIN_VERIFIERS,
+    _akutbolig_inventory_url,
+    fetch_kobenhavn,
+    parse_candidates,
+    verify_candidate,
+)
 
 
 BRIKK_PAGE = """
@@ -91,6 +100,86 @@ class BrikkSourceTests(unittest.TestCase):
                     else "<main><p>Aktiv bolig</p><aside>Andre boliger er solgt</aside></main>"
                 )
             )
+
+
+KOBENHAVN_PAGE = """
+<h4>Lejligheder til leje, København og omegn.</h4>
+<table><tr><td><a href="https://www.akutbolig.dk/vis/486255">H.C. Andersens Boulevard 10, 2. th., 1553 København V</a></td><td>4500</td><td>1</td><td>20</td></tr></table>
+<h4>2450 København SV - Andelsbolig</h4>
+<table><tr><td><a href="https://broker.example/handelsvej-23">Händelsvej 23, 2. th., 2450 København SV</a></td><td>1.848.000</td><td>3</td><td>74</td></tr></table>
+"""
+
+
+class KobenhavnSourceTests(unittest.TestCase):
+    def test_parses_rental_and_cooperative_candidates_with_strict_limits(self):
+        candidates = parse_candidates(KOBENHAVN_PAGE)
+        self.assertEqual(
+            {"rent", "cooperative_sale"}, {item["transaction_type"] for item in candidates}
+        )
+        rent = next(item for item in candidates if item["transaction_type"] == "rent")
+        self.assertEqual(15000, rent["price_limit"])
+        self.assertFalse(rent["price_limit_inclusive"])
+
+    def test_rejects_stale_detail_and_accepts_current_inventory_membership(self):
+        candidate = parse_candidates(KOBENHAVN_PAGE)[0]
+        stale = verify_candidate(candidate, lambda _url: "Denne bolig er ikke længere aktiv")
+        self.assertIsNone(stale)
+
+        def active_fetch(url):
+            if url.endswith("/koebenhavn-v"):
+                return (
+                    '<a href="/vis/486255">H.C. Andersens Boulevard 10, 2. th.</a>'
+                    "<span>4.750 kr.</span><span>1 værelse</span><span>20 m²</span>"
+                )
+            return ""
+
+        active = verify_candidate(candidate, active_fetch)
+        self.assertEqual("kobenhavn:rent:akutbolig.dk:486255", active["id"])
+        self.assertEqual(4750, active["price"]["amount"])
+
+    def test_unsupported_origin_is_not_fetched(self):
+        candidate = parse_candidates(KOBENHAVN_PAGE)[1]
+        self.assertIsNone(verify_candidate(candidate, lambda _url: "Til salg"))
+
+    def test_captured_origin_manifest_has_a_verifier_for_every_current_host(self):
+        manifest_path = Path("tests/fixtures/kobenhavn_dk/origin_manifest.json")
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        self.assertTrue(manifest["captured_at"])
+        self.assertEqual(set(manifest["origin_hosts"]), set(ORIGIN_VERIFIERS))
+
+    def test_private_or_non_https_origin_is_never_fetched(self):
+        candidate = dict(
+            parse_candidates(KOBENHAVN_PAGE)[1],
+            origin_url="http://127.0.0.1/listing",
+            origin_host="127.0.0.1",
+        )
+        calls = []
+        self.assertIsNone(verify_candidate(candidate, lambda url: calls.append(url) or ""))
+        self.assertEqual([], calls)
+
+    def test_frederiksberg_uses_verified_inventory_route(self):
+        self.assertEqual("https://www.akutbolig.dk/frederiksberg/lejlighed", _akutbolig_inventory_url(1900))
+        self.assertEqual("https://www.akutbolig.dk/frederiksberg/lejlighed", _akutbolig_inventory_url(2000))
+
+    def test_fetch_returns_only_origin_verified_rows(self):
+        def fetch_text(url):
+            if url == "https://www.kobenhavn.dk/bolig":
+                return KOBENHAVN_PAGE
+            if url.endswith("/koebenhavn-v"):
+                return (
+                    '<a href="/vis/486255">H.C. Andersens Boulevard 10, 2. th.</a>'
+                    "<span>4.500 kr.</span><span>1 værelse</span><span>20 m²</span>"
+                )
+            return ""
+
+        snapshot = fetch_kobenhavn(fetch_text)
+        self.assertEqual(
+            ["kobenhavn:rent:akutbolig.dk:486255"], [item["id"] for item in snapshot.listings]
+        )
+        self.assertEqual("manual_review", snapshot.diagnostics[0]["outcome"])
+        self.assertIn("broker.example", snapshot.diagnostics[0]["origin_url"])
+        self.assertEqual("inspection", snapshot.events[0]["kind"])
+        self.assertFalse(snapshot.events[0]["urgent"])
 
 
 if __name__ == "__main__":
