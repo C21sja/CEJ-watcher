@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import re
@@ -7,6 +8,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from html import unescape
+from urllib.parse import urlencode
 
 from housing_policy import (
     canonical_listing_key,
@@ -19,6 +21,12 @@ from housing_policy import (
     listing_matches_policy,
     normalize_text,
 )
+from housing_sources import SourceContractError, SourceSnapshot, SourceSpec
+from housing_sources.brikk import fetch_brikk
+from housing_sources.findbolig import fetch_findbolig, make_findbolig_transport
+from housing_sources.kobenhavn_dk import fetch_kobenhavn
+from housing_sources.landlords import fetch_lejeboligmaegleren, fetch_norhjem, fetch_taurus
+from housing_sources.readiness import fetch_cphomes, fetch_rle, fetch_vaernedamsvej
 
 # Configurations
 API_URL = "https://udlejning.cej.dk/find-bolig/overblik?collection=residences&monthlyPrice=0-50000&p=sj%C3%A6lland&_data=routes%2Fsearch%2Flayout"
@@ -216,18 +224,25 @@ WEEKEND_TIER_WINDOWS = [
     (9, 20, "COOL"),   # rare, but keep a light watch (weak prior from git history)
 ]
 
-# Sources that are cheap to fetch (single request or a handful) and are the
-# ones this cadence redesign targets (CEJ itself, plus the two "sibling"
-# sources bundled into this Mixed Watcher, plus the new City Apartment
-# watcher). These are fetched on every poll at the tier-driven interval below.
-FAST_SOURCE_NAMES = {"CEJ", "Propstep", "Sweet Homes", "City Apartment"}
-# Sources that are either slow (Juli Living: ~6-7s per fetch) or amplify into
-# many extra HTTP requests per poll (Capital Bolig fetches one detail page per
-# matching listing). Polling these as fast as CEJ would multiply load on sites
-# nobody has reported timing problems with, so they get their own, much slower,
-# independent cadence instead of inheriting CEJ's fast tier.
-SLOW_SOURCE_NAMES = {"Capital Bolig", "Juli Living", "C.W. Obel"}
+# Sources are now scheduled per-source via make_source_registry() and
+# fetch_due_sources() rather than two hard-coded name groups. "fast" sources
+# (CEJ and its cheap siblings, plus Findbolig/Lejeboligmægleren/Norhjem) run
+# every cycle at the tier-driven interval below; "ten_minute" and
+# "thirty_minute" cadences cover slower or request-amplifying sources.
 SLOW_SOURCE_INTERVAL_SECONDS = max(60, read_non_negative_int_env("WATCHER_SLOW_SOURCE_INTERVAL_SECONDS", 600))
+READINESS_SOURCE_INTERVAL_SECONDS = max(
+    300, read_non_negative_int_env("WATCHER_READINESS_SOURCE_INTERVAL_SECONDS", 1800)
+)
+
+
+def cadence_seconds(cadence):
+    if cadence == "ten_minute":
+        return SLOW_SOURCE_INTERVAL_SECONDS
+    if cadence == "thirty_minute":
+        return READINESS_SOURCE_INTERVAL_SECONDS
+    if cadence == "fast":
+        return 0
+    raise ValueError(f"Unknown source cadence: {cadence}")
 
 MAX_RUNTIME_SECONDS = max(60, read_non_negative_int_env("WATCHER_MAX_RUNTIME_SECONDS", 70 * 60))
 EXIT_BUFFER_SECONDS = 60
@@ -431,6 +446,72 @@ def save_seen_states(states):
         print(f"Error saving seen states: {e}")
 
 
+BASELINE_STATE_PREFIX = "__meta__:baseline:"
+BASELINE_CHUNK_STATE_PREFIX = "__meta__:baseline-chunk:"
+READINESS_STATE_PREFIX = "__meta__:readiness:"
+CANONICAL_LISTING_STATE_PREFIX = "__meta__:listing:"
+BASELINE_MENTION_STATE_KEY = "__meta__:baseline-mention"
+
+
+def baseline_state_key(source):
+    return f"{BASELINE_STATE_PREFIX}{source}"
+
+
+def readiness_state_key(event_id):
+    return f"{READINESS_STATE_PREFIX}{event_id}"
+
+
+def baseline_chunk_state_key(body):
+    return f"{BASELINE_CHUNK_STATE_PREFIX}{hashlib.sha256(body.encode('utf-8')).hexdigest()}"
+
+
+def listing_state_key(listing):
+    canonical_key = listing.get("canonical_key")
+    if canonical_key:
+        digest = hashlib.sha256(str(canonical_key).encode("utf-8")).hexdigest()
+        return f"{CANONICAL_LISTING_STATE_PREFIX}{digest}"
+    return listing.get("id")
+
+
+def remember_listing_state(seen_states, listing):
+    state_key = listing_state_key(listing)
+    status = listing.get("status")
+    if state_key:
+        seen_states[state_key] = status
+    if listing.get("id"):
+        seen_states[listing["id"]] = status
+
+
+def is_active_baseline_listing(listing):
+    return normalize_text(listing.get("status")) in {"available", "ledig", "under opsigelse"}
+
+
+def prepare_source_snapshots(snapshots):
+    eligible = []
+    for snapshot in snapshots:
+        for listing in snapshot.listings:
+            if listing_matches_policy(listing):
+                eligible.append(listing)
+    selected_object_ids = {id(listing) for listing in deduplicate_listings(eligible)}
+    return [
+        SourceSnapshot(
+            source=snapshot.source,
+            listings=[listing for listing in snapshot.listings if id(listing) in selected_object_ids],
+            events=list(snapshot.events),
+            diagnostics=list(snapshot.diagnostics),
+        )
+        for snapshot in snapshots
+    ]
+
+
+def _readiness_state(event):
+    return {
+        "signature": str(event.get("signature", "")),
+        "registration_closed": bool(event.get("registration_closed", False)),
+        "signals": sorted(set(event.get("signals") or [])),
+    }
+
+
 def send_discord_notification(listing):
     if not WEBHOOK_URL:
         print("Webhook URL not found. Skipping Discord notification.")
@@ -532,6 +613,26 @@ def post_json(url, payload):
         if response.status != 200:
             raise WatcherError(f"Unexpected HTTP status {response.status} for {url}")
         return json.loads(response.read().decode("utf-8", errors="replace"))
+
+
+def post_form_json(url, payload):
+    body = urlencode(payload, doseq=True).encode("utf-8")
+    request = urllib.request.Request(
+        url,
+        data=body,
+        headers={
+            "User-Agent": HEADERS["User-Agent"],
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        },
+    )
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def fetch_findbolig_live():
+    fetch_text, post_search = make_findbolig_transport(HEADERS)
+    return fetch_findbolig(fetch_text, post_search)
 
 
 def strip_html_tags(value):
@@ -1100,68 +1201,125 @@ def fetch_sweet_homes_apartments():
     return apartments
 
 
-def fetch_fast_source_apartments():
-    """Fetch the cheap-to-poll sources: CEJ itself, plus the sibling sources
-    bundled into this Mixed Watcher that are similarly cheap (a single request
-    or a small handful) -- Propstep, Sweet Homes, and City Apartment. These are
-    fetched on every adaptive-polling cycle."""
-    all_items = []
+def make_source_registry():
+    """Every tracked source, its polling cadence, and its fetch function.
 
-    try:
-        all_items.extend(normalize_cej_listing(item) for item in fetch_cej_apartments())
-    except WatcherError as e:
-        if not is_cej_transient_error(e):
-            raise
-        print(f"Skipping CEJ listings for this run: {e}")
+    AKF is intentionally absent here: it is classified inside the single
+    existing Propstep response (see fetch_propstep_apartments()), so no
+    second HTTP request or duplicate ID is created for it. The logical
+    "AKF via Propstep" baseline snapshot is derived from that response by
+    build_logical_baseline_snapshots() below.
+    """
+    return [
+        SourceSpec(
+            "CEJ",
+            "fast",
+            lambda: SourceSnapshot("CEJ", [normalize_cej_listing(item) for item in fetch_cej_apartments()]),
+            baseline=False,
+        ),
+        SourceSpec("City Apartment", "fast", lambda: SourceSnapshot("City Apartment", fetch_city_apartments()), baseline=False),
+        SourceSpec("Propstep", "fast", lambda: SourceSnapshot("Propstep", fetch_propstep_apartments()), baseline=False),
+        SourceSpec("Sweet Homes", "fast", lambda: SourceSnapshot("Sweet Homes", fetch_sweet_homes_apartments()), baseline=False),
+        SourceSpec("Findbolig", "fast", fetch_findbolig_live),
+        SourceSpec("Lejeboligmægleren", "fast", lambda: fetch_lejeboligmaegleren(post_json, fetch_json)),
+        SourceSpec("Norhjem", "fast", lambda: fetch_norhjem(post_form_json, fetch_url_text)),
+        SourceSpec("Capital Bolig", "ten_minute", lambda: SourceSnapshot("Capital Bolig", fetch_capitalbolig_apartments()), baseline=False),
+        SourceSpec("Juli Living", "ten_minute", lambda: SourceSnapshot("Juli Living", fetch_juliliving_apartments()), baseline=False),
+        SourceSpec("C.W. Obel", "ten_minute", lambda: SourceSnapshot("C.W. Obel", fetch_cwobel_apartments()), baseline=False),
+        SourceSpec("Taurus", "ten_minute", lambda: fetch_taurus(fetch_url_text)),
+        SourceSpec("Brikk", "ten_minute", lambda: fetch_brikk(fetch_url_text)),
+        SourceSpec("Kobenhavn.dk", "ten_minute", lambda: fetch_kobenhavn(fetch_url_text)),
+        SourceSpec("RLE", "ten_minute", lambda: fetch_rle(fetch_json)),
+        SourceSpec("Værnedamsvej", "ten_minute", lambda: fetch_vaernedamsvej(fetch_url_text)),
+        SourceSpec("CPH Homes", "thirty_minute", lambda: fetch_cphomes(fetch_url_text)),
+    ]
 
-    try:
-        all_items.extend(fetch_city_apartments())
-    except Exception as e:
-        print(f"Error parsing City Apartment listings: {e}")
 
-    try:
-        all_items.extend(fetch_propstep_apartments())
-    except Exception as e:
-        print(f"Error parsing Propstep listings: {e}")
+def fetch_due_sources(registry, now, next_due):
+    """Fetch every source whose cadence is due, isolating one source's
+    failure from the others. Returns (snapshots, succeeded_source_names).
+    A contract-valid empty snapshot counts as success; an exception does
+    not produce a snapshot at all, so the baseline can tell "zero current
+    matches" apart from "this source failed to fetch"."""
+    snapshots = []
+    succeeded = set()
+    for spec in registry:
+        due = spec.cadence == "fast" or now >= next_due.get(spec.name, 0.0)
+        if not due:
+            continue
+        try:
+            snapshot = spec.fetch()
+            if not isinstance(snapshot, SourceSnapshot):
+                raise SourceContractError(f"{spec.name} did not return a SourceSnapshot")
+            if snapshot.source != spec.name:
+                raise SourceContractError(
+                    f"{spec.name} returned a snapshot labelled {snapshot.source}"
+                )
+            snapshots.append(snapshot)
+            succeeded.add(spec.name)
+        except Exception as exc:
+            print(f"[{spec.name}] source fetch failed: {safe_console_text(exc)}")
+        finally:
+            if spec.cadence != "fast":
+                next_due[spec.name] = now + cadence_seconds(spec.cadence)
+    return snapshots, succeeded
 
-    try:
-        all_items.extend(fetch_sweet_homes_apartments())
-    except Exception as e:
-        print(f"Error parsing Sweet Homes listings: {e}")
 
-    return all_items
+# AKF via Propstep is a logical sub-source of Propstep's single response
+# (see Task 9's classification inside fetch_propstep_apartments()): it
+# needs its own baseline digest entry without triggering a second fetch.
+LOGICAL_BASELINE_SUBSOURCES = {"Propstep": ("AKF via Propstep",)}
 
 
-def fetch_slow_source_apartments():
-    """Fetch the sources that are either slow (Juli Living) or amplify into
-    many extra HTTP requests per poll (Capital Bolig fetches one detail page
-    per matching listing). Polled on a much slower, independent cadence."""
-    all_items = []
+def build_logical_baseline_snapshots(snapshots, registry):
+    baseline_names = {spec.name for spec in registry if spec.baseline}
+    logical = [snapshot for snapshot in snapshots if snapshot.source in baseline_names]
+    for snapshot in snapshots:
+        for source_label in LOGICAL_BASELINE_SUBSOURCES.get(snapshot.source, ()):
+            logical.append(
+                SourceSnapshot(
+                    source_label,
+                    listings=[listing for listing in snapshot.listings if listing.get("source") == source_label],
+                )
+            )
+    return logical
 
-    try:
-        all_items.extend(fetch_capitalbolig_apartments())
-    except Exception as e:
-        print(f"Error parsing Capital Bolig listings: {e}")
 
-    try:
-        all_items.extend(fetch_juliliving_apartments())
-    except Exception as e:
-        print(f"Error parsing Juli Living listings: {e}")
-
-    try:
-        all_items.extend(fetch_cwobel_apartments())
-    except Exception as e:
-        print(f"Error parsing C.W. Obel listings: {e}")
-
-    return all_items
+def process_source_snapshots(snapshots, registry, seen_states):
+    """Run the baseline digest for any source seeing its first successful
+    fetch, then send ordinary per-listing/readiness alerts for everything
+    else. Returns (sent, failures, incomplete_baseline_sources)."""
+    prepared = prepare_source_snapshots(snapshots)
+    logical_baselines = build_logical_baseline_snapshots(prepared, registry)
+    baseline_sources = {snapshot.source for snapshot in logical_baselines}
+    incomplete, baseline_failures = initialize_source_baselines(logical_baselines, baseline_sources, seen_states)
+    ready = [
+        SourceSnapshot(
+            snapshot.source,
+            listings=[listing for listing in snapshot.listings if listing.get("source") not in incomplete],
+            events=list(snapshot.events),
+            diagnostics=list(snapshot.diagnostics),
+        )
+        for snapshot in prepared
+        if snapshot.source not in incomplete
+    ]
+    listings = [listing for snapshot in ready for listing in snapshot.listings]
+    events = [event for snapshot in ready for event in snapshot.events]
+    listing_sent, listing_failures = process_apartments(listings, seen_states)
+    event_sent, event_failures = process_readiness_events(events, seen_states)
+    return listing_sent + event_sent, baseline_failures + listing_failures + event_failures, incomplete
 
 
 def fetch_apartments():
-    """Fetch every source in one shot (fast + slow). Used by the legacy
-    single-shot mode (WATCHER_RUNS > 0) and by tests; the continuous adaptive
-    loop in main() calls fetch_fast_source_apartments()/fetch_slow_source_apartments()
-    independently instead so the two groups can run on different cadences."""
-    return fetch_fast_source_apartments() + fetch_slow_source_apartments()
+    """Fetch every registered source once, without running the alert
+    pipeline. Used by the legacy single-shot mode (WATCHER_RUNS > 0) and by
+    tests; the continuous adaptive loop in main() calls
+    fetch_due_sources()/process_source_snapshots() directly instead so each
+    source can run on its own cadence."""
+    registry = make_source_registry()
+    snapshots, _succeeded = fetch_due_sources(registry, now=0.0, next_due={})
+    prepared = prepare_source_snapshots(snapshots)
+    return [listing for snapshot in prepared for listing in snapshot.listings]
 
 
 def process_apartments(apartments, seen_states):
@@ -1170,50 +1328,243 @@ def process_apartments(apartments, seen_states):
     (sent_notifications, notification_failures)."""
     sent_notifications = 0
     notification_failures = 0
-
-    for apt in apartments:
-        if not isinstance(apt, dict):
+    for apartment in apartments:
+        if not isinstance(apartment, dict):
             raise WatcherError("Apartment source returned an item in an unexpected format.")
-
-        if not matches_general_listing_filters(apt):
+        if not matches_general_listing_filters(apartment):
             continue
-
-        apt_id = apt.get("id")
-        status = apt.get("status")
-
-        if not apt_id:
+        apartment_id = apartment.get("id")
+        status = apartment.get("status")
+        if not apartment_id:
             continue
+        state_key = listing_state_key(apartment)
+        previous_status = seen_states.get(state_key)
+        if previous_status is None and state_key != apartment_id:
+            previous_status = seen_states.get(apartment_id)
+            if previous_status is not None:
+                seen_states[state_key] = previous_status
+                save_seen_states(seen_states)
+        actionable = is_active_baseline_listing(apartment)
 
-        previous_status = seen_states.get(apt_id)
-
-        # Upgrade legacy status silently without sending a notification
-        if previous_status == "unknown":
-            seen_states[apt_id] = status
+        if previous_status == "unknown" or (previous_status is None and not actionable):
+            remember_listing_state(seen_states, apartment)
+            save_seen_states(seen_states)
+            continue
+        if previous_status == status:
+            continue
+        if not actionable:
+            remember_listing_state(seen_states, apartment)
             save_seen_states(seen_states)
             continue
 
-        # Notify if completely new OR if the status changed (e.g. reserved -> available)
-        if previous_status is None or previous_status != status:
-            reason = "New apartment found" if previous_status is None else f"Status changed ({previous_status} -> {status})"
-            print(f"{reason}: {safe_console_text(apt.get('name'))} ({apt_id})")
-
-            if send_discord_notification(apt):
-                seen_states[apt_id] = status
-                save_seen_states(seen_states)
-                sent_notifications += 1
-            else:
-                notification_failures += 1
-
+        reason = "New apartment found" if previous_status is None else f"Status changed ({previous_status} -> {status})"
+        print(f"{reason}: {safe_console_text(apartment.get('name'))} ({apartment_id})")
+        if send_discord_notification(apartment):
+            remember_listing_state(seen_states, apartment)
+            save_seen_states(seen_states)
+            sent_notifications += 1
+        else:
+            notification_failures += 1
     return sent_notifications, notification_failures
+
+
+def _compact_listing_line(listing):
+    name = str(listing.get("name") or (listing.get("location") or {}).get("formatted") or "Unknown home")
+    price = format_price_for_display(
+        (listing.get("price") or {}).get("amount"), listing.get("price_period", "month")
+    )
+    status = str(listing.get("status") or "unknown")
+    return f"- [{name}]({listing.get('url')}) — {price} — {status}"
+
+
+def _snapshot_digest_lines(snapshot):
+    active = [listing for listing in snapshot.listings if is_active_baseline_listing(listing)]
+    lines = [f"**{snapshot.source}: {len(active)} active match(es)**"]
+    if active:
+        lines.extend(_compact_listing_line(listing) for listing in active)
+    else:
+        lines.append("- No active current matches.")
+    for event in snapshot.events:
+        headline = event.get("baseline_headline") or event.get("headline") or "Monitoring ready"
+        lines.append(f"- Status: [{headline}]({event.get('url')})")
+    return lines
+
+
+def build_baseline_digest_chunks(snapshots, max_chars=1600):
+    chunks = []
+    current_lines = []
+    current_sources = set()
+
+    def flush_current():
+        nonlocal current_lines, current_sources
+        if current_lines:
+            chunks.append({"body": "\n".join(current_lines), "sources": frozenset(current_sources)})
+            current_lines = []
+            current_sources = set()
+
+    for snapshot in snapshots:
+        source_lines = [
+            line if len(line) <= max_chars else line[: max_chars - 1] + "…"
+            for line in _snapshot_digest_lines(snapshot)
+        ]
+        source_body = "\n".join(source_lines)
+        if len(source_body) <= max_chars:
+            projected = "\n".join(current_lines + source_lines)
+            if current_lines and len(projected) > max_chars:
+                flush_current()
+            current_lines.extend(source_lines)
+            current_sources.add(snapshot.source)
+            continue
+
+        flush_current()
+        source_chunk_lines = []
+        for line in source_lines:
+            if source_chunk_lines and len("\n".join(source_chunk_lines + [line])) > max_chars:
+                chunks.append({"body": "\n".join(source_chunk_lines), "sources": frozenset({snapshot.source})})
+                source_chunk_lines = []
+            source_chunk_lines.append(line)
+        if source_chunk_lines:
+            chunks.append({"body": "\n".join(source_chunk_lines), "sources": frozenset({snapshot.source})})
+    flush_current()
+    return chunks
+
+
+def _baseline_payload(body, include_mention):
+    mention, allowed_mentions = build_discord_mention() if include_mention else (None, None)
+    prefix = f"{mention} " if mention else ""
+    payload = {"content": f"{prefix}:house: **Housing tracker baseline**\n{body}"}
+    if allowed_mentions:
+        payload["allowed_mentions"] = allowed_mentions
+    return payload
+
+
+def initialize_source_baselines(snapshots, baseline_source_names, seen_states, max_chars=1600):
+    pending = [
+        snapshot
+        for snapshot in snapshots
+        if snapshot.source in baseline_source_names
+        and seen_states.get(baseline_state_key(snapshot.source)) != "complete"
+    ]
+    if not pending:
+        return set(), 0
+    if not WEBHOOK_URL:
+        print("Webhook URL not found. Baselines remain pending.")
+        return {snapshot.source for snapshot in pending}, 1
+
+    source_succeeded = {snapshot.source: True for snapshot in pending}
+    delivery_failures = 0
+    include_mention = seen_states.get(BASELINE_MENTION_STATE_KEY) != "sent"
+    for chunk in build_baseline_digest_chunks(pending, max_chars=max_chars):
+        chunk_key = baseline_chunk_state_key(chunk["body"])
+        delivered = seen_states.get(chunk_key) == "sent"
+        if not delivered:
+            delivered = post_discord_payload(_baseline_payload(chunk["body"], include_mention))
+            if delivered:
+                seen_states[chunk_key] = "sent"
+                save_seen_states(seen_states)
+        if delivered and include_mention:
+            seen_states[BASELINE_MENTION_STATE_KEY] = "sent"
+            save_seen_states(seen_states)
+            include_mention = False
+        if not delivered:
+            delivery_failures += 1
+            for source in chunk["sources"]:
+                source_succeeded[source] = False
+
+    incomplete = set()
+    changed = False
+    for snapshot in pending:
+        if not source_succeeded[snapshot.source]:
+            incomplete.add(snapshot.source)
+            continue
+        for listing in snapshot.listings:
+            if listing.get("id"):
+                remember_listing_state(seen_states, listing)
+        for event in snapshot.events:
+            if event.get("id"):
+                seen_states[readiness_state_key(event["id"])] = _readiness_state(event)
+        seen_states[baseline_state_key(snapshot.source)] = "complete"
+        changed = True
+    if changed:
+        save_seen_states(seen_states)
+    return incomplete, delivery_failures
+
+
+def send_readiness_notification(event, urgent=False):
+    if not WEBHOOK_URL:
+        print(f"Webhook URL not found. Readiness event remains pending: {safe_console_text(event.get('headline'))}")
+        return False
+    kind = event.get("kind", "project_update")
+    is_application_opening = kind == "application_opening"
+    mention, allowed_mentions = build_discord_mention() if is_application_opening else (None, None)
+    label = {
+        "application_opening": "APPLICATION OPENING",
+        "inspection": "Inspection needed",
+        "project_update": "Project update",
+    }.get(kind, "Housing source update")
+    payload = {
+        "content": f"{mention + ' ' if mention else ''}:rotating_light: **{label} — {event.get('source', 'Source')}**",
+        "embeds": [
+            {
+                "title": str(event.get("headline") or label),
+                "url": event.get("url"),
+                "description": str(event.get("description") or "Inspect the official page.")[:4000],
+                "color": 15158332 if urgent else 15844367,
+            }
+        ],
+    }
+    if allowed_mentions:
+        payload["allowed_mentions"] = allowed_mentions
+    return post_discord_payload(payload)
+
+
+def process_readiness_events(events, seen_states):
+    sent = 0
+    failures = 0
+    for event in events:
+        event_id = event.get("id")
+        signature = str(event.get("signature") or "")
+        if not event_id or not signature:
+            raise WatcherError("Readiness event is missing an ID or signature.")
+        key = readiness_state_key(event_id)
+        previous = seen_states.get(key)
+        previous_signature = previous.get("signature") if isinstance(previous, dict) else previous
+        if previous_signature == signature:
+            continue
+        previous_closed = bool(previous.get("registration_closed")) if isinstance(previous, dict) else False
+        previous_signals = set(previous.get("signals") or []) if isinstance(previous, dict) else set()
+        current_signals = set(event.get("signals") or [])
+        registration_opened = previous_closed and not event.get("registration_closed", False)
+        urgent = bool(
+            event.get("urgent")
+            or registration_opened
+            or (current_signals - previous_signals)
+        )
+        alert_event = dict(event)
+        if registration_opened:
+            alert_event["kind"] = "application_opening"
+            alert_event["headline"] = event.get("urgent_headline") or "APPLICATION OPENING"
+            alert_event["url"] = event.get("application_url") or event.get("url")
+        if previous is not None and event.get("change_headline"):
+            alert_event["headline"] = event["change_headline"]
+        if send_readiness_notification(alert_event, urgent=urgent):
+            seen_states[key] = _readiness_state(event)
+            save_seen_states(seen_states)
+            sent += 1
+        else:
+            failures += 1
+    return sent, failures
 
 
 def run_check():
     """Single-shot check across every source (legacy WATCHER_RUNS mode)."""
     seen_states = load_seen_states()
-    apartments = fetch_apartments()
+    registry = make_source_registry()
+    snapshots, _succeeded = fetch_due_sources(registry, now=0.0, next_due={})
 
-    print(f"Found {len(apartments)} total apartments in the response.")
-    _sent, notification_failures = process_apartments(apartments, seen_states)
+    total_listings = sum(len(snapshot.listings) for snapshot in snapshots)
+    print(f"Found {total_listings} total apartments in the response.")
+    _sent, notification_failures, _incomplete = process_source_snapshots(snapshots, registry, seen_states)
 
     if notification_failures:
         raise WatcherError(f"Failed to send {notification_failures} Discord notification(s).")
@@ -1234,17 +1585,18 @@ def run_legacy_fixed_interval_mode():
 
 
 def run_adaptive_continuous_mode():
-    """Continuous loop: fast sources (CEJ, Propstep, Sweet Homes, City
-    Apartment) are polled every cycle at a Copenhagen-time-aware adaptive
-    interval; slow/heavy sources (Capital Bolig, Juli Living, C.W. Obel) are
-    polled on their own, much slower, independent cadence. Runs until
+    """Continuous loop: every registered source is polled on its own
+    cadence via fetch_due_sources() ("fast" sources every cycle at a
+    Copenhagen-time-aware adaptive interval; "ten_minute"/"thirty_minute"
+    sources on their own, much slower, independent schedule). Runs until
     MAX_RUNTIME_SECONDS is reached (leaving EXIT_BUFFER_SECONDS to persist
     state), then exits cleanly so the next scheduled job can take over."""
     seen_states = load_seen_states()
+    registry = make_source_registry()
+    next_due = {}
 
     start_time = time.monotonic()
     deadline = start_time + MAX_RUNTIME_SECONDS - EXIT_BUFFER_SECONDS
-    next_slow_fetch_monotonic = start_time  # fetch slow sources on the very first cycle
     run_num = 0
     total_notification_failures = 0
 
@@ -1259,16 +1611,17 @@ def run_adaptive_continuous_mode():
         tier = classify_period(local_now) if ADAPTIVE_POLLING else "FIXED"
         print(f"--- Poll {run_num} [{tier}] - CPH {local_now.strftime('%a %H:%M:%S')} - {remaining / 60:.1f}min remaining ---")
 
-        apartments = fetch_fast_source_apartments()
-
-        fetch_slow_now = time.monotonic() >= next_slow_fetch_monotonic
-        if fetch_slow_now:
-            apartments += fetch_slow_source_apartments()
-            next_slow_fetch_monotonic = time.monotonic() + SLOW_SOURCE_INTERVAL_SECONDS
-
-        print(f"Fetched {len(apartments)} apartments this cycle (slow sources included: {fetch_slow_now}).")
-        sent, failures = process_apartments(apartments, seen_states)
+        now = time.monotonic()
+        snapshots, succeeded = fetch_due_sources(registry, now=now, next_due=next_due)
+        print(
+            f"Fetched {sum(len(snapshot.listings) for snapshot in snapshots)} listings "
+            f"and {sum(len(snapshot.events) for snapshot in snapshots)} readiness states "
+            f"from {len(succeeded)} successful source(s)."
+        )
+        sent, failures, incomplete = process_source_snapshots(snapshots, registry, seen_states)
         total_notification_failures += failures
+        if incomplete:
+            print(f"Pending first-success baselines: {', '.join(sorted(incomplete))}")
         if sent == 0 and failures == 0:
             print("No new unseen apartments found in this cycle.")
 

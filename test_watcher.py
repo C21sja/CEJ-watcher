@@ -254,24 +254,22 @@ class CEJFetchTests(unittest.TestCase):
         self.assertEqual([{"id": "cej-1", "status": 1}], apartments)
         mock_sleep.assert_called_once_with(1)
 
-    @patch("watcher.fetch_sweet_homes_apartments", return_value=[])
-    @patch("watcher.fetch_propstep_apartments", return_value=[])
-    @patch("watcher.fetch_cwobel_apartments", return_value=[])
-    @patch("watcher.fetch_juliliving_apartments", return_value=[])
-    @patch("watcher.fetch_capitalbolig_apartments", return_value=[])
-    @patch("watcher.fetch_city_apartments", return_value=[])
-    @patch("watcher.fetch_cej_apartments", side_effect=watcher.WatcherError("CEJ API rate limited after 3 attempts."))
-    def test_fetch_apartments_skips_rate_limited_cej(
-        self,
-        _mock_fetch_cej,
-        _mock_fetch_city,
-        _mock_fetch_capital,
-        _mock_fetch_juli,
-        _mock_fetch_cwobel,
-        _mock_fetch_propstep,
-        _mock_fetch_sweet_homes,
-    ):
-        self.assertEqual([], watcher.fetch_apartments())
+    def test_fetch_due_sources_isolates_a_rate_limited_cej_failure(self):
+        # Scheduling itself now belongs to test_source_scheduler.py; this
+        # keeps only the CEJ-specific behavior: a rate-limit failure must
+        # not suppress a sibling source that succeeds in the same cycle.
+        from housing_sources import SourceSnapshot, SourceSpec
+
+        def failing_cej():
+            raise watcher.WatcherError("CEJ API rate limited after 3 attempts.")
+
+        registry = [
+            SourceSpec("CEJ", "fast", failing_cej, baseline=False),
+            SourceSpec("City Apartment", "fast", lambda: SourceSnapshot("City Apartment"), baseline=False),
+        ]
+        snapshots, succeeded = watcher.fetch_due_sources(registry, now=0.0, next_due={})
+        self.assertEqual(["City Apartment"], [snapshot.source for snapshot in snapshots])
+        self.assertEqual({"City Apartment"}, succeeded)
 
 
 class DiscordNotificationTests(unittest.TestCase):
@@ -543,32 +541,14 @@ class CityApartmentParsingTests(unittest.TestCase):
 
 
 class FastSlowSourceSplitTests(unittest.TestCase):
-    def test_fast_and_slow_source_names_do_not_overlap(self):
-        self.assertEqual(set(), watcher.FAST_SOURCE_NAMES & watcher.SLOW_SOURCE_NAMES)
-
-    @patch("watcher.fetch_sweet_homes_apartments", return_value=[{"id": "sh"}])
-    @patch("watcher.fetch_propstep_apartments", return_value=[{"id": "ps"}])
-    @patch("watcher.fetch_city_apartments", return_value=[{"id": "ca"}])
-    @patch("watcher.fetch_cej_apartments", return_value=[{"id": "cej", "status": "available"}])
-    def test_fetch_fast_source_apartments_covers_all_fast_sources(
-        self, _mock_cej, _mock_city, _mock_propstep, _mock_sweethomes
-    ):
-        items = watcher.fetch_fast_source_apartments()
-        ids = {item["id"] for item in items}
-        self.assertEqual({"cej", "ca", "ps", "sh"}, ids)
-
-    @patch("watcher.fetch_cwobel_apartments", return_value=[{"id": "cwobel"}])
-    @patch("watcher.fetch_juliliving_apartments", return_value=[{"id": "juli"}])
-    @patch("watcher.fetch_capitalbolig_apartments", return_value=[{"id": "capital"}])
-    def test_fetch_slow_source_apartments_covers_all_slow_sources(
-        self, _mock_capital, _mock_juli, _mock_cwobel
-    ):
-        items = watcher.fetch_slow_source_apartments()
-        ids = {item["id"] for item in items}
-        self.assertEqual({"capital", "juli", "cwobel"}, ids)
-
+    # The hard-coded fast/slow name-group tests were replaced by the
+    # cadence-aware registry in test_source_scheduler.py; this class keeps
+    # only the interval sanity check that has no scheduler-specific home.
     def test_slow_source_interval_is_much_slower_than_hot_tier(self):
         self.assertGreater(watcher.SLOW_SOURCE_INTERVAL_SECONDS, watcher.POLL_INTERVALS["HOT"])
+
+    def test_readiness_source_interval_is_slower_than_the_ten_minute_tier(self):
+        self.assertGreater(watcher.READINESS_SOURCE_INTERVAL_SECONDS, watcher.SLOW_SOURCE_INTERVAL_SECONDS)
 
 
 if __name__ == "__main__":
