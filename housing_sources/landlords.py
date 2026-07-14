@@ -92,8 +92,12 @@ def _label_value(html, label):
         )
 
     for variant in label_variants:
+        # Taurus sometimes appends a parenthetical or trailing space to a
+        # label (e.g. "Husleje (Mdl.) ", "Boligareal (m2) "), so match the
+        # label as a leading word boundary rather than requiring an exact,
+        # full string before the closing tag.
         pattern = re.compile(
-            rf">\s*{re.escape(variant)}\s*:?\s*</[^>]+>\s*"
+            rf">\s*{re.escape(variant)}\b[^<]*</[^>]+>\s*:?\s*"
             r"(?:<[^>/][^>]*>\s*)*([^<]+)",
             re.IGNORECASE,
         )
@@ -120,10 +124,13 @@ def parse_taurus_detail(candidate, html):
     street = _label_value(main, "Vejnavn")
     house_number = _label_value(main, "Husnummer")
     postcode = _label_value(main, "Postnummer")
+    # "By" is not required: a live capture (12 July 2026) found Taurus's
+    # sidebar never includes a separate city label, only Postnummer. The
+    # shared postcode-based area policy does not need a city name.
     city = _label_value(main, "By")
     current_rent = extract_amount(rent_text)
 
-    if not all((status_text, rent_text, street, house_number, postcode, city)):
+    if not all((status_text, rent_text, street, house_number, postcode)):
         raise SourceContractError(
             f"Taurus detail {candidate['record_id']} is missing labelled fields"
         )

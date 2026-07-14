@@ -155,7 +155,9 @@ class TaurusSourceTests(unittest.TestCase):
         )
 
     def test_detail_requires_every_required_label_inside_main(self):
-        required = ("Status", "Husleje", "Vejnavn", "Husnummer", "Postnummer", "By")
+        # "By" (city) is deliberately not required: a live capture found
+        # Taurus's sidebar never includes it, only Postnummer.
+        required = ("Status", "Husleje", "Vejnavn", "Husnummer", "Postnummer")
         for label in required:
             with self.subTest(label=label):
                 with self.assertRaises(SourceContractError):
