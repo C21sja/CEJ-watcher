@@ -38,11 +38,11 @@ jobs:
 
       - name: Verify watcher syntax
         run: |
-          python -m py_compile watcher.py
+          python -m py_compile watcher.py housing_policy.py housing_sources/__init__.py housing_sources/findbolig.py housing_sources/brikk.py housing_sources/kobenhavn_dk.py housing_sources/landlords.py housing_sources/readiness.py
 
       - name: Run unit tests
         run: |
-          python -m unittest test_watcher -v
+          python -m unittest discover -v
 
   run-watcher:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
@@ -79,13 +79,17 @@ jobs:
           # handoff) while exiting ~5min early to leave time to persist state.
           WATCHER_MAX_RUNTIME_SECONDS: 4200
           # Adaptive, Copenhagen-time-aware polling is ON by default (see
-          # watcher.py). CEJ, Propstep, Sweet Homes and City Apartment are
+          # watcher.py). Every source is registered with its own cadence in
+          # make_source_registry(): "fast" sources (CEJ, Propstep, Sweet
+          # Homes, City Apartment, Findbolig, Lejeboligmægleren, Norhjem) are
           # polled every cycle at a tier-driven interval (fast on weekday
-          # business hours, slow overnight/weekends); Capital Bolig, Juli
-          # Living and C.W. Obel are polled on their own slower, independent
-          # cadence since they're heavier/slower to fetch. Tune via
-          # WATCHER_POLL_*_SECONDS, WATCHER_SLOW_SOURCE_INTERVAL_SECONDS, or
-          # disable entirely with WATCHER_ADAPTIVE_POLLING=false.
+          # business hours, slow overnight/weekends); "ten_minute" sources
+          # (Capital Bolig, Juli Living, C.W. Obel, Taurus, Brikk,
+          # Kobenhavn.dk, RLE, Værnedamsvej) and the "thirty_minute" source
+          # (CPH Homes) run on their own slower, independent cadence. Tune
+          # via WATCHER_POLL_*_SECONDS, WATCHER_SLOW_SOURCE_INTERVAL_SECONDS,
+          # WATCHER_READINESS_SOURCE_INTERVAL_SECONDS, or disable entirely
+          # with WATCHER_ADAPTIVE_POLLING=false.
         run: |
           python watcher.py
 
