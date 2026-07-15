@@ -576,7 +576,7 @@
   "propstep:64c0ef458f8ff90a4a0dba74": "Reserved",
   "propstep:682aee96e35abf6f399b271f": "Available",
   "e7789636b4e8424bb3967d84675bfd2f": "Reserved",
-  "propstep:6a47872cb257b622dc562e83": "Available",
+  "propstep:6a47872cb257b622dc562e83": "Reserved",
   "propstep:66f13e4c35db520e6ce4f1fd": "Available",
   "propstep:66f06a0987dbc9256816af81": "Available",
   "propstep:6a4cc1c7c2de2a709e740af1": "Reserved",
@@ -761,7 +761,7 @@
   "__meta__:listing:f7ac8912e52fc0557c3eb3fb73bb18754e86755e007de3f5ab4d81ff5d8abfb5": "Available",
   "__meta__:listing:dfc62296db476256f862ff11ca3ea61bad19b3b600b389ade822ac410d93aca6": "Available",
   "__meta__:listing:f48948b0878159151acadc4d6dd9568ad26cc6cc2977a0a7af7f56ad3e155e19": "Available",
-  "__meta__:listing:3d8bcfd5b0ca97feba328f9e160431647be802d3708041ba4e87a6fb3f29643b": "Available",
+  "__meta__:listing:3d8bcfd5b0ca97feba328f9e160431647be802d3708041ba4e87a6fb3f29643b": "Reserved",
   "__meta__:listing:167a842f81e6ee10cd7b1902e869e42ee98b8b21689808009e6dbd3520c7248a": "Available",
   "__meta__:listing:0e479831d11b2cc3a598831dffef8d200f428bdc3b0ddb2dfe06adc155ff0a57": "Reserved",
   "__meta__:listing:d7a074b9c897a2be7a6b1e350631ae42093e898d5a0175e58ed3f7ed3e10f32b": "Reserved",
@@ -787,5 +787,6 @@
   "__meta__:listing:64fbf181d1bf13e531bbda0f28efc44cce643a612b907e4edef26ee4ed02117b": "Available",
   "__meta__:listing:b3256cfc797718c27b137fa96595bf94227b81d2fa8cbb25ec357bc068bdda04": "Available",
   "__meta__:listing:b5a8f4ad59f3b0fbbfd87e0a4c5b3d5dcf1a30e2f7a03db1073b9ef449ae65b0": "Available",
-  "lejeboligmaegleren:17484": "Available"
+  "lejeboligmaegleren:17484": "Available",
+  "73c5e621f0014840a4a3ba98041dafaf": "Available"
 }
