@@ -323,7 +323,7 @@
   "propstep:67ff994ed9687d40eb74afe7": "Available",
   "propstep:69b1ca02159c1b61ea34c350": "Available",
   "propstep:696a35e5fabf8d5150f7b743": "Reserved",
-  "propstep:64c0ef458f8ff90a4a0dba1e": "Reserved",
+  "propstep:64c0ef458f8ff90a4a0dba1e": "Available",
   "propstep:65041adf8ca09a39dab04fe1": "Rented",
   "propstep:65041adf8ca09a39dab0505d": "Rented",
   "propstep:67f64fccbba3eb36eeb1c1e1": "Reserved",
@@ -461,7 +461,7 @@
   "propstep:6a0ef3681b009350c1dea3e4": "Reserved",
   "f9d562ae3fc74298ab96d0ebf2ca1c64": "Reserved",
   "89d3c1ace56947028c02084865061ca3": "Reserved",
-  "propstep:6864327236d031023c68c67c": "Available",
+  "propstep:6864327236d031023c68c67c": "Reserved",
   "b54ed368bc6b44f19a1efe6f93ee84b6": "Reserved",
   "5865bee7a9a34084b30e9c361939bb23": "Reserved",
   "sweethomes:2348307": "Rented",
@@ -774,7 +774,7 @@
   "__meta__:listing:9292f950726141bc749cbe0669bd51bb2022c16b29b3dcfe7e8b8be27dddf105": "Available",
   "__meta__:listing:17a68aee26aa34b75a49515b18980d3aba354a08884b12829d906b323b873243": "Available",
   "__meta__:listing:eba6fb44c5324d3058fcc5fd4115fed5d01be2f455a1df2519f39806a6e5d014": "Available",
-  "__meta__:listing:f5442d8f2f0324c9e3319b7d4bc01c5d48301d7b8a78a5478bd91b64cfa66c01": "Available",
+  "__meta__:listing:f5442d8f2f0324c9e3319b7d4bc01c5d48301d7b8a78a5478bd91b64cfa66c01": "Reserved",
   "__meta__:listing:a18a45a78f4c86f8333ca8626fa7622b9ecfffad266feb13c3a5cec153535056": "Available",
   "__meta__:listing:32f40459ad82d0d3d8c894ef8197d0e7a2762b4ce9fcf45161ee7a980774eb65": "Reserved",
   "__meta__:listing:4920b0e3105a6d62e1c88f5eaae53c068696749bfc8e60880e7e9762070e6a6f": "Reserved",
@@ -798,5 +798,8 @@
   "__meta__:listing:f2fc383ea21a1a9dcc50a49b23993e88b92d893c075f7c57f1be405e35fa8adf": "Available",
   "propstep:6908baf37ff4b306307d04cd": "Available",
   "__meta__:listing:3a13e3ecde6a97279794a455d41f0cca217aaefdfda227ae50fd1f2c7c3ae94f": "Available",
-  "propstep:6908baf37ff4b306307d04a9": "Available"
+  "propstep:6908baf37ff4b306307d04a9": "Available",
+  "__meta__:listing:f0799fbd5e551f8926e914b3714767499daf3a0139e9216848b6e9baa7f4e89c": "Available",
+  "__meta__:listing:4a3c3788ec21dc578147004aa2fdfda341f77c806175a553bdc326d98707e075": "Available",
+  "propstep:64998d86baacbe5355e5f696": "Available"
 }
