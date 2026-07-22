@@ -666,16 +666,13 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "af4d87055d8cf88ee1ffa4fc7797f922b3b809aa7af8e5e6c82b1f6e651c1933",
+    "signature": "45c9b05df89f3f2fe1ee47ae6f5f214700891551ef1ce7ee5b762854ce1d4260",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
       "unikboligsalg.dk:cooperative_sale:unikboligsalg.dk:CW415",
-      "www.akutbolig.dk:rent:akutbolig.dk:313162",
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
-      "www.akutbolig.dk:rent:akutbolig.dk:649115",
-      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
     ]
