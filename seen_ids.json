@@ -519,7 +519,7 @@
   "propstep:6a1fe6fabaa793591089554f": "Reserved",
   "sweethomes:2348328": "Rented",
   "propstep:696a3c157bfa6a3e19841d16": "Reserved",
-  "propstep:696a3abebf5b1f79d15a2bcf": "Available",
+  "propstep:696a3abebf5b1f79d15a2bcf": "Reserved",
   "sweethomes:2224458": "Rented",
   "sweethomes:2215390": "Rented",
   "sweethomes:2224467": "Rented",
@@ -646,8 +646,8 @@
   "norhjem:/ejendomme/roskildevej/roskildevej-33-b-2-302/": "Reserved",
   "__meta__:listing:9f8f2c9d98e5d6f2aef8758169d1a9ce5ec687c628067dfddb042ab61634f348": "Reserved",
   "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-3-tv/": "Reserved",
-  "__meta__:listing:341053d28a9a6a406324948555e493ec8120570805b700159bd98a2f6fd0397e": "Available",
-  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-6-doer3/": "Available",
+  "__meta__:listing:341053d28a9a6a406324948555e493ec8120570805b700159bd98a2f6fd0397e": "Reserved",
+  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-6-doer3/": "Reserved",
   "__meta__:listing:480ed9873b956b812b2ac300ed604a75078eca3fb5c114b102402fe2759b9efe": "Reserved",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-3-03/": "Reserved",
   "__meta__:listing:63abf3386fee18b3ff2bddbe30a2eb1f6e493028d0be0c705997d15f5d016066": "Reserved",
@@ -779,7 +779,7 @@
   "__meta__:listing:7c43305edfa05eeb9fb90ab3a3d8c30600bf8fada3ff052ac1465758852ed71e": "Available",
   "__meta__:listing:93f9a7ccc1f4c63bc9d3ae74ef436f314d798f5b707e7b45dc17054c3be53969": "Available",
   "__meta__:listing:6253f4729a406f6bdcb73b2b29a8fe7708d817dad56b4dbec17d9faaa61ff693": "Reserved",
-  "__meta__:listing:471f176038597dc45e4bcd3f14c7170c791751353fc14af5f5b4dfda4d02eaad": "Available",
+  "__meta__:listing:471f176038597dc45e4bcd3f14c7170c791751353fc14af5f5b4dfda4d02eaad": "Reserved",
   "__meta__:listing:80ba3294cc76b15dd0814b7f8b06c5cbd6beadb6ea7ea808364eb5a2a18c678c": "Available",
   "__meta__:listing:d7edf53d1e686502ac0371de483cbab8f3e1b4686600b4180d712d9322606116": "Available",
   "__meta__:listing:64fbf181d1bf13e531bbda0f28efc44cce643a612b907e4edef26ee4ed02117b": "Available",
@@ -807,5 +807,7 @@
   "__meta__:listing:33bc1e67259590bab12ca0b6362f5560921bc13dc98313f88ed32a4e62fd3150": "Available",
   "propstep:6a47a628b257b622dcbd3806": "Available",
   "__meta__:listing:39b88adc289bfd422072842ba39533c91dac4a848a3295155e68b202c2a99061": "Available",
-  "propstep:682aee97e35abf6f399b273a": "Available"
+  "propstep:682aee97e35abf6f399b273a": "Available",
+  "__meta__:listing:19acd3bad13e1f3770a679154ec673d129d8bacfbca0d417e3a39f1f1c470ba4": "Available",
+  "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Available"
 }
