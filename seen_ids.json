@@ -485,7 +485,7 @@
   "propstep:68d3eb2ba8541d5070e85cac": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cb6": "Available",
   "propstep:68d3eb2ba8541d5070e85c9a": "Available",
-  "propstep:68d3eb2ba8541d5070e85cc0": "Available",
+  "propstep:68d3eb2ba8541d5070e85cc0": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c9e": "Reserved",
   "propstep:68d3eb2ba8541d5070e85ca0": "Available",
   "propstep:68d3eb2ba8541d5070e85ca4": "Reserved",
@@ -695,7 +695,7 @@
   "__meta__:listing:3cd1e37f459c184d223ea5f3645836e15aa92d5c359cd7adb1a29ee3056db2c7": "Reserved",
   "__meta__:listing:cd2e0c5d96a22ca9564feae3d8ef740f6ccc2e7d8cfa7a8679fd7f005522c212": "Available",
   "__meta__:listing:394c2dd5aa561156dcd72bdba86839b343bf91dabbcd7f52ececa57686c46135": "Available",
-  "__meta__:listing:409b007c464cbf13502d6b0be548e5d27af808da4aa2bacd5723a81aacd8ecf6": "Available",
+  "__meta__:listing:409b007c464cbf13502d6b0be548e5d27af808da4aa2bacd5723a81aacd8ecf6": "Reserved",
   "__meta__:listing:1c8fbd7953ba54e55fd4be13414ddbea52e23e9d5289eaf4cc9987b9f26679ee": "Available",
   "__meta__:listing:3e401b50af7c5dbb34fa651bc145be5025ab62ee392647442900bfdaa76e6055": "Available",
   "__meta__:listing:dc8a48798451267888005437078bc9474b32c8312533e5920f496e17ec4ecc3a": "Available",
@@ -809,5 +809,7 @@
   "__meta__:listing:39b88adc289bfd422072842ba39533c91dac4a848a3295155e68b202c2a99061": "Available",
   "propstep:682aee97e35abf6f399b273a": "Available",
   "__meta__:listing:19acd3bad13e1f3770a679154ec673d129d8bacfbca0d417e3a39f1f1c470ba4": "Available",
-  "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Available"
+  "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Available",
+  "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Available",
+  "propstep:68edfc30bc56665b69b7cf55": "Available"
 }
