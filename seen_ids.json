@@ -789,8 +789,8 @@
   "73c5e621f0014840a4a3ba98041dafaf": "Reserved",
   "__meta__:listing:3c0ab58acf4574f4c4fdce51c91a9a19df708ddd56fba875f5e47985e0d3a275": "Available",
   "lejeboligmaegleren:19779": "Available",
-  "__meta__:listing:eca86603ad49a6f239b92d6c707fd1ed3883e62fcfaf0ad689227eb27d7bc00d": "Reserved",
-  "propstep:64c0ef458f8ff90a4a0dba08": "Reserved",
+  "__meta__:listing:eca86603ad49a6f239b92d6c707fd1ed3883e62fcfaf0ad689227eb27d7bc00d": "Available",
+  "propstep:64c0ef458f8ff90a4a0dba08": "Available",
   "__meta__:listing:5a2dcca7ccd15adbf97a32be500a8485ef6f8a5863d3b42c833bb1e06bd96594": "Reserved",
   "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-4-mf/": "Reserved",
   "__meta__:listing:f2fc383ea21a1a9dcc50a49b23993e88b92d893c075f7c57f1be405e35fa8adf": "Reserved",
@@ -843,5 +843,11 @@
   "https://cityapartment.dk/da/cityapartments/vesterbrogade-118b-4-th/": "Available",
   "__meta__:listing:0de4679c08666544013f73a5643cafabd1cb44a0af0ed0ec6fe38f7fd85a72ed": "Available",
   "propstep:66f13e3735db520e6ce4e30a": "Available",
-  "1f95ec4a9bb24b3eb102f24416d04d37": "Available"
+  "1f95ec4a9bb24b3eb102f24416d04d37": "Available",
+  "__meta__:listing:155b439807a92663bd237b9cfc4474a829faa4a9b586f501da623229bc316aeb": "Available",
+  "propstep:64c0ef458f8ff90a4a0dba1c": "Available",
+  "__meta__:listing:17f2489369b160f6ca738d444c5348d4a85f99e4bbfe29306edb31f2618edd75": "Available",
+  "propstep:67f64fcbbba3eb36eeb1c1a4": "Available",
+  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Available",
+  "propstep:67f64fcbbba3eb36eeb1c19f": "Available"
 }
