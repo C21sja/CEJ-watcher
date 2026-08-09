@@ -659,7 +659,7 @@
   "taurus:22588": "Available",
   "__meta__:listing:cf78f36c1f8ab1ee87288bf15a8f1e4ec658c1a5eee7e5afeef6c42ed7a8595c": "Available",
   "taurus:22404": "Available",
-  "__meta__:listing:4fafcfbcc6e697cfc40fa60e5f5e2295ffb8debf6c0ebd021573cfc1fa8efc7d": "Available",
+  "__meta__:listing:4fafcfbcc6e697cfc40fa60e5f5e2295ffb8debf6c0ebd021573cfc1fa8efc7d": "Reserved",
   "taurus:22238": "Available",
   "__meta__:listing:a8fb4c8f59598485eed7f28b7b4280260a88c66e37b3c2a4e2703aa4d85e1fe4": "Available",
   "taurus:15512": "Available",
@@ -851,5 +851,6 @@
   "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Available",
   "propstep:67f64fcbbba3eb36eeb1c19f": "Available",
   "6e8ee0ee520748a28de22e22e084a720": "Available",
-  "e6d4d57f8760241a03fba8965288f2af": "Reserved"
+  "e6d4d57f8760241a03fba8965288f2af": "Reserved",
+  "taurus:27296": "Reserved"
 }
