@@ -815,8 +815,8 @@
   "__meta__:listing:11078b5993b3933446005a8fab030674ead206b6775f208952044d3984e4d50c": "Available",
   "propstep:6a47a72ac83cc05fbd1edc7e": "Available",
   "__meta__:listing:1fb4b5ef9b439fbcd70d9c3d832f4b29a94bf971b27f3376a27e625517d9b793": "Available",
-  "__meta__:listing:fbdce2b9fc51eaca8920065d2ea0c08b1ff0aca61a57c9cc93957fb333f0dcef": "Available",
-  "propstep:66f13e4587dbc92568270441": "Available",
+  "__meta__:listing:fbdce2b9fc51eaca8920065d2ea0c08b1ff0aca61a57c9cc93957fb333f0dcef": "Reserved",
+  "propstep:66f13e4587dbc92568270441": "Reserved",
   "__meta__:listing:d1f121732909896c2586e4b3cace42d0617f626ae6662e8ef1a1e4e4bee8f4ad": "Available",
   "propstep:686432705072bd262ca9a72f": "Available",
   "__meta__:listing:1f157c861c4869ad2e729c286a17c4c8eeb13c84c160d65a4312b6a73c11659b": "Available",
@@ -848,8 +848,8 @@
   "propstep:64c0ef458f8ff90a4a0dba1c": "Available",
   "__meta__:listing:17f2489369b160f6ca738d444c5348d4a85f99e4bbfe29306edb31f2618edd75": "Available",
   "propstep:67f64fcbbba3eb36eeb1c1a4": "Available",
-  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Available",
-  "propstep:67f64fcbbba3eb36eeb1c19f": "Available",
+  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Reserved",
+  "propstep:67f64fcbbba3eb36eeb1c19f": "Reserved",
   "6e8ee0ee520748a28de22e22e084a720": "Reserved",
   "e6d4d57f8760241a03fba8965288f2af": "Reserved",
   "taurus:27296": "Reserved",
@@ -916,5 +916,7 @@
   "__meta__:listing:9ae3e8fa58c609078c6466e56c0468a1cfe7c36b4925fcc7e65660423b1926c4": "Available",
   "propstep:68d3eb2ca8541d5070e85d14": "Available",
   "__meta__:listing:feb5eade9e1749b1dd9efa0c86c92b262248551805b594c6db6f220c3adf0d20": "Available",
-  "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-2-mf/": "Available"
+  "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-2-mf/": "Available",
+  "__meta__:listing:e42263690e90cc0a1690abbdab65f8bcaebfe97dca648da943cdcae77837da3a": "Available",
+  "taurus:27478": "Available"
 }
