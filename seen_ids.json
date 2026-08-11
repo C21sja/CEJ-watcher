@@ -238,7 +238,7 @@
   "propstep:696a3adb7bfa6a3e19840486": "Rented",
   "propstep:6864327836d031023c68c702": "Reserved",
   "propstep:686432715072bd262ca9a737": "Reserved",
-  "propstep:6864327336d031023c68c68f": "Reserved",
+  "propstep:6864327336d031023c68c68f": "Available",
   "propstep:6864326c5072bd262ca9a701": "Reserved",
   "propstep:6864326c5072bd262ca9a705": "Reserved",
   "propstep:6864326c5072bd262ca9a708": "Reserved",
@@ -919,5 +919,7 @@
   "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-2-mf/": "Available",
   "__meta__:listing:e42263690e90cc0a1690abbdab65f8bcaebfe97dca648da943cdcae77837da3a": "Available",
   "taurus:27478": "Available",
-  "cc475162d7e1ea73af3af17d6973bca2": "Reserved"
+  "cc475162d7e1ea73af3af17d6973bca2": "Reserved",
+  "https://cityapartment.dk/da/cityapartments/junggreensvej-13-2-th-2/": "Available",
+  "__meta__:listing:82d3cf01c193808394d38058a1ba5519fdbf4360a6c24b6e08558276cb387a1b": "Available"
 }
