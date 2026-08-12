@@ -831,7 +831,7 @@
   "propstep:682aee97e35abf6f399b2749": "Reserved",
   "__meta__:listing:5ffc352cfd756ef1f7606b79e2635bcbdec39182015ceedbf5db335ad051f4e1": "Available",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-1-04/": "Available",
-  "__meta__:listing:a3f1a8364a885eb136153f087d3cae12723f4bd65e283dbffeff222ed69cd8be": "Reserved",
+  "__meta__:listing:a3f1a8364a885eb136153f087d3cae12723f4bd65e283dbffeff222ed69cd8be": "Available",
   "taurus:27290": "Reserved",
   "__meta__:listing:13d49e70dddd2309f83d96cfecbbfa976f81b92317db56412e12f17ba9a3a84b": "Available",
   "propstep:69bbd504d54f4346bebbf140": "Reserved",
@@ -931,5 +931,6 @@
   "a85ffd302ad041cdbc1cf5b941d648d6": "Available",
   "057626dd5ff1b8d897e88d4634715f40": "Reserved",
   "__meta__:listing:eb549de79a9a1e20488b87d8febd6aa7fde7830a07c47b6cf9186e2156472b64": "Available",
-  "propstep:6a79b0018de8f666bec52a82": "Available"
+  "propstep:6a79b0018de8f666bec52a82": "Available",
+  "taurus:27576": "Available"
 }
