@@ -812,8 +812,8 @@
   "propstep:682aee97e35abf6f399b273a": "Available",
   "__meta__:listing:19acd3bad13e1f3770a679154ec673d129d8bacfbca0d417e3a39f1f1c470ba4": "Reserved",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Reserved",
-  "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Available",
-  "propstep:68edfc30bc56665b69b7cf55": "Available",
+  "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Reserved",
+  "propstep:68edfc30bc56665b69b7cf55": "Reserved",
   "__meta__:listing:11078b5993b3933446005a8fab030674ead206b6775f208952044d3984e4d50c": "Available",
   "propstep:6a47a72ac83cc05fbd1edc7e": "Available",
   "__meta__:listing:1fb4b5ef9b439fbcd70d9c3d832f4b29a94bf971b27f3376a27e625517d9b793": "Available",
@@ -963,5 +963,7 @@
   "propstep:682aee97e35abf6f399b274d": "Available",
   "79b282f49daa0b4336ee0be6a992b862": "Reserved",
   "__meta__:listing:b227113abc339bd13bd988ea50d2b92feb28863be8666b3a7264ed5cf480bf57": "Available",
-  "norhjem:/ejendomme/roskildevej/roskildevej-33-a-st-102/": "Available"
+  "norhjem:/ejendomme/roskildevej/roskildevej-33-a-st-102/": "Available",
+  "__meta__:listing:9250d0329b4d9c7a9d86751fe7e8787eb5d2dcc1f0142754f19af0b9f1df82d2": "Available",
+  "taurus:27827": "Available"
 }
