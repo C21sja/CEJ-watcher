@@ -907,8 +907,8 @@
   "propstep:68d3eb2da8541d5070e85d60": "Available",
   "__meta__:listing:7cecfd1667252dfd5280a8838d353eb0b14fb29f96bff13b3834ee816f1a543d": "Available",
   "propstep:68d3eb2ca8541d5070e85d06": "Available",
-  "__meta__:listing:27e27b83ac0d1fd5b1a6cc757c68ccee748cc609cc439eaff74bc95baa8f92e5": "Available",
-  "propstep:68d3eb2da8541d5070e85d36": "Available",
+  "__meta__:listing:27e27b83ac0d1fd5b1a6cc757c68ccee748cc609cc439eaff74bc95baa8f92e5": "Reserved",
+  "propstep:68d3eb2da8541d5070e85d36": "Reserved",
   "__meta__:listing:340672d5058ef72c3ab162dc0547a06d4d3447cebddcaa1e6b03f2b0f13982fe": "Available",
   "propstep:68d3eb2da8541d5070e85d68": "Available",
   "__meta__:listing:58fee5462f4ee5cf03c80d5c455538c41977f371d2016c46a01ee12a42dc1454": "Available",
@@ -1023,5 +1023,6 @@
   "lejeboligmaegleren:17995": "Available",
   "https://cityapartment.dk/da/cityapartments/sankt-nikolaj-vej-28-5-tv/": "Available",
   "d27d9adf37944c5d87e030b5bd167edd": "Reserved",
-  "__meta__:listing:c2786a85189819ad5cf8902d3b08353cda0d7176ec971298e7f05b749725e584": "Available"
+  "__meta__:listing:c2786a85189819ad5cf8902d3b08353cda0d7176ec971298e7f05b749725e584": "Available",
+  "fe8dd164cad7df6cf02d982f4054559b": "Reserved"
 }
