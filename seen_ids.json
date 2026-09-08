@@ -681,7 +681,7 @@
   },
   "__meta__:baseline:Kobenhavn.dk": "complete",
   "__meta__:readiness:readiness:rle": {
-    "signature": "61bd7d520f84a2cbf403d21ca66507743d2c4f2b8752e04e5524178ebe15dbed",
+    "signature": "45a58c98062e4de75831e95442b8bbf72127188763862b6281c44fe66ee3152a",
     "registration_closed": false,
     "signals": []
   },
@@ -1029,7 +1029,7 @@
   "__meta__:listing:2ac1cb8efbd71193cd195ac4dcf6e32b3582fd82936339ecc1bb38106c14efde": "Available",
   "propstep:67f64fc9bba3eb36eeb1c161": "Available",
   "6697003a79874bf9b141ece0f7f460de": "Available",
-  "09359a580f54433b88b5228f9272af94": "Available",
+  "09359a580f54433b88b5228f9272af94": "Reserved",
   "7b147688c184f2a77f760c28e2a33cbc": "Reserved",
   "__meta__:listing:9212660cca73f49f12c2332108e335df5005a311a5a35fd85dfd0d7e7eaa7a3f": "Available",
   "propstep:67f64fcbbba3eb36eeb1c1c6": "Available",
@@ -1047,5 +1047,10 @@
   "__meta__:listing:48d84b59305575b204e660d8583b18fdb2f1d06c5c87586d729891a703c07911": "Available",
   "taurus:27932": "Available",
   "__meta__:listing:3898b2e25f0aa20168dbde9179e215bc68673134c281dbc308063181d472d80b": "Available",
-  "taurus:27929": "Available"
+  "taurus:27929": "Available",
+  "e70e20148db6077c38233d8824527b04": "Available",
+  "__meta__:listing:d25e3c371fb54c795d890f1319e7e0d8372062064fdcac6b69016efaa205c2cc": "Available",
+  "lejeboligmaegleren:18458": "Available",
+  "__meta__:listing:f50b6c1c1a985a35e66c9bf1357d0dd812dc6343109f5915873cccb9c4a8c98f": "Available",
+  "lejeboligmaegleren:18457": "Available"
 }
