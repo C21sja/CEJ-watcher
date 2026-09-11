@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
+    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -674,6 +674,8 @@
       "www.akutbolig.dk:rent:akutbolig.dk:313162",
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
+      "www.akutbolig.dk:rent:akutbolig.dk:649115",
+      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -812,8 +814,8 @@
   "propstep:682aee97e35abf6f399b273a": "Available",
   "__meta__:listing:19acd3bad13e1f3770a679154ec673d129d8bacfbca0d417e3a39f1f1c470ba4": "Reserved",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Reserved",
-  "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Available",
-  "propstep:68edfc30bc56665b69b7cf55": "Available",
+  "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Reserved",
+  "propstep:68edfc30bc56665b69b7cf55": "Reserved",
   "__meta__:listing:11078b5993b3933446005a8fab030674ead206b6775f208952044d3984e4d50c": "Available",
   "propstep:6a47a72ac83cc05fbd1edc7e": "Available",
   "__meta__:listing:1fb4b5ef9b439fbcd70d9c3d832f4b29a94bf971b27f3376a27e625517d9b793": "Available",
@@ -932,8 +934,8 @@
   "norhjem:/ejendomme/teglhuset/teglholmsgade-36-st-doer7/": "Available",
   "a85ffd302ad041cdbc1cf5b941d648d6": "Reserved",
   "057626dd5ff1b8d897e88d4634715f40": "Reserved",
-  "__meta__:listing:eb549de79a9a1e20488b87d8febd6aa7fde7830a07c47b6cf9186e2156472b64": "Available",
-  "propstep:6a79b0018de8f666bec52a82": "Available",
+  "__meta__:listing:eb549de79a9a1e20488b87d8febd6aa7fde7830a07c47b6cf9186e2156472b64": "Reserved",
+  "propstep:6a79b0018de8f666bec52a82": "Reserved",
   "taurus:27576": "Available",
   "73c334bd525e1f9f0ad3ebfd0a21ed07": "Reserved",
   "https://cityapartment.dk/da/cityapartments/boehmensgade-16-st-tv/": "Available",
@@ -991,8 +993,8 @@
   "propstep:682aee94e35abf6f399b26b9": "Available",
   "__meta__:listing:3d8a5df47c4c56aed0d47e1d1e934936980f5669c769884eaa2156865805b3ca": "Available",
   "propstep:68edfc30bc56665b69b7cf35": "Available",
-  "__meta__:listing:e73a34b4fe1decf53292e54ce0d0693729f4806abd82bca1e5ae08533972ad08": "Available",
-  "propstep:68edfc30bc56665b69b7cf45": "Available",
+  "__meta__:listing:e73a34b4fe1decf53292e54ce0d0693729f4806abd82bca1e5ae08533972ad08": "Reserved",
+  "propstep:68edfc30bc56665b69b7cf45": "Reserved",
   "__meta__:listing:775d46554f0161bbf62e9875e40b85e8b8200e3360795ae644aed003f15e06cd": "Available",
   "lejeboligmaegleren:17926": "Available",
   "__meta__:listing:edeb76933c341cadb702faf1d3d8149912ce8e3e9b99d7415b9cfda9c82ed34c": "Available",
@@ -1075,5 +1077,7 @@
   "__meta__:listing:24d61e332eebab5548cf51bd52c40629887dfb9e07a0c1e615a2cc9e24811f5b": "Available",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-1-07/": "Available",
   "__meta__:listing:bcb2b6375a3d949d0a5de22c259145a718ba164aa82c945e3ab068a57ebfa572": "Available",
-  "taurus:15516": "Available"
+  "taurus:15516": "Available",
+  "__meta__:listing:e503e61ed6af10b511aefda8335d9d0a9e38183f368d86cd1fd77e7dd1034104": "Available",
+  "norhjem:/ejendomme/h-c-oersteds-vej/h-c-oersteds-vej-63-c/": "Available"
 }
