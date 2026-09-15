@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
+    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -674,8 +674,6 @@
       "www.akutbolig.dk:rent:akutbolig.dk:313162",
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
-      "www.akutbolig.dk:rent:akutbolig.dk:649115",
-      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -810,8 +808,8 @@
   "norhjem:/ejendomme/roskildevej/roskildevej-33-a-3-403/": "Reserved",
   "__meta__:listing:33bc1e67259590bab12ca0b6362f5560921bc13dc98313f88ed32a4e62fd3150": "Available",
   "propstep:6a47a628b257b622dcbd3806": "Available",
-  "__meta__:listing:39b88adc289bfd422072842ba39533c91dac4a848a3295155e68b202c2a99061": "Available",
-  "propstep:682aee97e35abf6f399b273a": "Available",
+  "__meta__:listing:39b88adc289bfd422072842ba39533c91dac4a848a3295155e68b202c2a99061": "Reserved",
+  "propstep:682aee97e35abf6f399b273a": "Reserved",
   "__meta__:listing:19acd3bad13e1f3770a679154ec673d129d8bacfbca0d417e3a39f1f1c470ba4": "Reserved",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-3-07/": "Reserved",
   "__meta__:listing:867fe22ea6854d1b2851edf405c572188a55b0a42472fc33dedf77f50b34dd27": "Available",
@@ -1083,5 +1081,8 @@
   "b69cf9f0ea044114afd2d05334c7857e": "Available",
   "93462fb4890e4ef09e397cab5ace956c": "Available",
   "https://cityapartment.dk/da/cityapartments/uplandsgade-36a-1-tv/": "Available",
-  "4af5ae73071f4338b0e63edd3e1f95ba": "Available"
+  "4af5ae73071f4338b0e63edd3e1f95ba": "Available",
+  "__meta__:listing:29c8d4ff8f91db35328d8ae9afe273742fe58128b6752e0c18f9cd51e20c1521": "Available",
+  "propstep:696a35d8fabf8d5150f7b66a": "Available",
+  "__meta__:listing:56920c9e4896a27d6c8d0264f5295ac94534cdf462f3bd83002eeb9e79a0dc9b": "Available"
 }
