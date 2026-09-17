@@ -687,7 +687,7 @@
   },
   "__meta__:baseline:RLE": "complete",
   "__meta__:readiness:readiness:vaernedamsvej": {
-    "signature": "685b34c97555af7c6b2c322386688588e39c62fc81933c480a201c3b0130d31d",
+    "signature": "1bb87b72e0afdcafba4d431e879fe1183fbc7616a1ba45d91261cf0ed6e0adca",
     "registration_closed": false,
     "signals": []
   },
@@ -1036,8 +1036,8 @@
   "__meta__:listing:ab9a4f07db1ae4ed1886185341b09312163e05680412a96ad5fe31565500ea44": "Reserved",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-4-20/": "Reserved",
   "a9f166a7334666a90aa0773811421d25": "Reserved",
-  "__meta__:listing:03794391b244207bd5daadc6833547f22193f43b6dc0097d12ddfce1259c9dcd": "Available",
-  "propstep:6a9ac354c38eb864de78fa93": "Available",
+  "__meta__:listing:03794391b244207bd5daadc6833547f22193f43b6dc0097d12ddfce1259c9dcd": "Reserved",
+  "propstep:6a9ac354c38eb864de78fa93": "Reserved",
   "__meta__:listing:6a1fc059e5e41e61246b40ede4f1df873d9cf98eb5a0897337fdaa85e3c67d57": "Available",
   "propstep:69b1ca01159c1b61ea34c34c": "Available",
   "__meta__:listing:43f967942a9b06b831bada5b666553ea7a86ac46803e90cdaa62f522e9f273a1": "Available",
