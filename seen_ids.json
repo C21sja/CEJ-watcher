@@ -901,8 +901,8 @@
   "propstep:68d3eb2da8541d5070e85d6c": "Available",
   "__meta__:listing:d8c08ff8e633cf497d6201c7dc08d955acffbe7a8d23724cef241eeb210f25dd": "Available",
   "propstep:68d3eb2da8541d5070e85d57": "Available",
-  "__meta__:listing:ab9858c85a0fd995fd88a80e481cb68f9c950e10c9e2a04dbff4ef6d8d02bd9e": "Available",
-  "propstep:68d3eb2ca8541d5070e85d03": "Available",
+  "__meta__:listing:ab9858c85a0fd995fd88a80e481cb68f9c950e10c9e2a04dbff4ef6d8d02bd9e": "Reserved",
+  "propstep:68d3eb2ca8541d5070e85d03": "Reserved",
   "__meta__:listing:20b8ab8ddb7c05cb3008f322f23f6e2212cbde98147bdbecc06db7aa12b599ee": "Available",
   "propstep:68d3eb2da8541d5070e85d60": "Available",
   "__meta__:listing:7cecfd1667252dfd5280a8838d353eb0b14fb29f96bff13b3834ee816f1a543d": "Available",
@@ -1112,5 +1112,6 @@
   "propstep:6908baf27ff4b306307d049a": "Available",
   "https://cityapartment.dk/da/cityapartments/falkoner-alle-42-3-th/": "Available",
   "__meta__:listing:e115c9039f637af2b775ef2f56ac71a561e000bb6bde21ff7220b2c47ef118b6": "Available",
-  "propstep:696a3bf37bfa6a3e19841af5": "Available"
+  "propstep:696a3bf37bfa6a3e19841af5": "Available",
+  "63143762186b4b79a088e2091ed48d7f": "Available"
 }
