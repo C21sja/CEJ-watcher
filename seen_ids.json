@@ -989,8 +989,8 @@
   "propstep:682aee94e35abf6f399b26b3": "Available",
   "__meta__:listing:f5d5141afab4cd3eb71c463795576fc74f75b0027c9d2ff4883a98eed5b4ab91": "Available",
   "propstep:682aee94e35abf6f399b26b9": "Available",
-  "__meta__:listing:3d8a5df47c4c56aed0d47e1d1e934936980f5669c769884eaa2156865805b3ca": "Available",
-  "propstep:68edfc30bc56665b69b7cf35": "Available",
+  "__meta__:listing:3d8a5df47c4c56aed0d47e1d1e934936980f5669c769884eaa2156865805b3ca": "Reserved",
+  "propstep:68edfc30bc56665b69b7cf35": "Reserved",
   "__meta__:listing:e73a34b4fe1decf53292e54ce0d0693729f4806abd82bca1e5ae08533972ad08": "Reserved",
   "propstep:68edfc30bc56665b69b7cf45": "Reserved",
   "__meta__:listing:775d46554f0161bbf62e9875e40b85e8b8200e3360795ae644aed003f15e06cd": "Available",
@@ -1116,8 +1116,8 @@
   "63143762186b4b79a088e2091ed48d7f": "Available",
   "7d36ef67ac1a42169a18dfa7beed6475": "Reserved",
   "eaa58127c87427807718a69f56fd4d1f": "Reserved",
-  "__meta__:listing:52534ae754efe59bf3fa0ebca21a0ebca9ab3ae3b92937e85372e4be3a2d513e": "Available",
-  "propstep:682aee97e35abf6f399b2745": "Available",
+  "__meta__:listing:52534ae754efe59bf3fa0ebca21a0ebca9ab3ae3b92937e85372e4be3a2d513e": "Reserved",
+  "propstep:682aee97e35abf6f399b2745": "Reserved",
   "__meta__:listing:265cff8e61ed29f377482d236ef3fe0fc1f7fdc5599dc1e90ab989824e021584": "Available",
   "propstep:696a3aa7bf5b1f79d15a2a89": "Available",
   "__meta__:listing:7c5e895bcdc2c11848064d6249ea83a8f23e210f1c2d4224331b9a8c1bdc3ac7": "Available",
@@ -1127,5 +1127,7 @@
   "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Available",
   "propstep:686432785072bd262ca9a78f": "Available",
   "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
-  "propstep:69bbd51ad54f4346bebbf979": "Available"
+  "propstep:69bbd51ad54f4346bebbf979": "Available",
+  "__meta__:listing:2e85c73ee3cc39dedc9bb6bc78ae1f67f7d02cdd441cdabb79bb4c3710a2e76b": "Available",
+  "propstep:64c0ef458f8ff90a4a0dba34": "Available"
 }
