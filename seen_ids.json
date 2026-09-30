@@ -1072,8 +1072,8 @@
   "__meta__:listing:ba1dd1596ecb72c696d607011b8b05ad43bb45759b51fcc8e659ce5ef5df27e3": "Reserved",
   "propstep:696a3ab47bfa6a3e1984021b": "Reserved",
   "8f600542e4efe01de9a10bf3350bf209": "Reserved",
-  "__meta__:listing:24d61e332eebab5548cf51bd52c40629887dfb9e07a0c1e615a2cc9e24811f5b": "Reserved",
-  "norhjem:/ejendomme/strynoegade/strynoegade-5-1-07/": "Reserved",
+  "__meta__:listing:24d61e332eebab5548cf51bd52c40629887dfb9e07a0c1e615a2cc9e24811f5b": "Available",
+  "norhjem:/ejendomme/strynoegade/strynoegade-5-1-07/": "Available",
   "__meta__:listing:bcb2b6375a3d949d0a5de22c259145a718ba164aa82c945e3ab068a57ebfa572": "Available",
   "taurus:15516": "Available",
   "__meta__:listing:e503e61ed6af10b511aefda8335d9d0a9e38183f368d86cd1fd77e7dd1034104": "Reserved",
@@ -1124,8 +1124,8 @@
   "propstep:696a3ab7bf5b1f79d15a2b7a": "Available",
   "__meta__:listing:409bca5c701024d885db926a34fd62b64065a083f45cb2535e8d37b9ffa80656": "Available",
   "propstep:696a3ac7bf5b1f79d15a2c49": "Available",
-  "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Available",
-  "propstep:686432785072bd262ca9a78f": "Available",
+  "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Reserved",
+  "propstep:686432785072bd262ca9a78f": "Reserved",
   "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
   "propstep:69bbd51ad54f4346bebbf979": "Available",
   "__meta__:listing:2e85c73ee3cc39dedc9bb6bc78ae1f67f7d02cdd441cdabb79bb4c3710a2e76b": "Available",
@@ -1154,5 +1154,6 @@
   "__meta__:listing:d6fcee9e675b36afa8617bddf25bc23b67b6f5d600e7028c68efced87fd3c247": "Available",
   "propstep:68d3eb29a8541d5070e85bfe": "Available",
   "__meta__:listing:28ffe2b8c97d3767781351060a13ee6b4f339be8e2eb026e6bf6a88f10515b65": "Available",
-  "propstep:68d3eb2aa8541d5070e85c39": "Available"
+  "propstep:68d3eb2aa8541d5070e85c39": "Available",
+  "https://cityapartment.dk/da/cityapartments/kirsteinsgade-5-4-th/": "Available"
 }
