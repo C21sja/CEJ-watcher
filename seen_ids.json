@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
+    "signature": "f3b20dd73cea7f04babfe9823cada44d42fa3a4e0a283fc5daa03f060d32cc06",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,6 +675,7 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
+      "www.akutbolig.dk:rent:akutbolig.dk:711503",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
     ]
@@ -1155,5 +1156,17 @@
   "propstep:68d3eb29a8541d5070e85bfe": "Available",
   "__meta__:listing:28ffe2b8c97d3767781351060a13ee6b4f339be8e2eb026e6bf6a88f10515b65": "Available",
   "propstep:68d3eb2aa8541d5070e85c39": "Available",
-  "https://cityapartment.dk/da/cityapartments/kirsteinsgade-5-4-th/": "Available"
+  "https://cityapartment.dk/da/cityapartments/kirsteinsgade-5-4-th/": "Available",
+  "__meta__:listing:1f9b1ad1703623078a438c86cb77b6f033a60203bb31f75ed1095b6638a3d538": "Available",
+  "propstep:68d3eb29a8541d5070e85c12": "Available",
+  "__meta__:listing:eb4d2c689b2f8685f5f1a3249b20235141970649ffdff992edd01f59c6127559": "Available",
+  "propstep:68d3eb2aa8541d5070e85c2e": "Available",
+  "__meta__:listing:a5a9a6eeb5499caa0be9906d4dc4f24b2fd9dfb755d44b0d1ecfefd11e11d160": "Available",
+  "lejeboligmaegleren:18476": "Available",
+  "__meta__:listing:b299e045e0b44b2598a90374adcccacd27e09ddf6ec91c522d9503179be2f91e": "Available",
+  "lejeboligmaegleren:18180": "Available",
+  "__meta__:listing:613a07313b413563b9501a3fee57ec28b18b15bee57f69029d826685c44ce004": "Available",
+  "lejeboligmaegleren:18646": "Available",
+  "__meta__:listing:70ce90364317c65ac06d95c0b26a1227ef8a140aeeac4bf4f21f92ad6283952d": "Available",
+  "lejeboligmaegleren:18564": "Available"
 }
