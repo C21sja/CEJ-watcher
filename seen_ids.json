@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "f3b20dd73cea7f04babfe9823cada44d42fa3a4e0a283fc5daa03f060d32cc06",
+    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,7 +675,6 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
-      "www.akutbolig.dk:rent:akutbolig.dk:711503",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
     ]
@@ -944,7 +943,7 @@
   "taurus:27596": "Available",
   "__meta__:listing:64167a5b403de4c1e73189a65af99b24b2fb0a366ba7462039e41519da59f310": "Reserved",
   "norhjem:/ejendomme/noerrebrogade/noerrebrogade-32-c-5-tv/": "Reserved",
-  "212219f9c3d641bcbc0d449f5378302f": "Reserved",
+  "212219f9c3d641bcbc0d449f5378302f": "Available",
   "3fbf6e9c6fc242febc5f5e72ebedebee": "Available",
   "475a9a08e57543c58d3bd1b1d04143ed": "Reserved",
   "2cfbea3af7506a873f21c1eea65cc502": "Reserved",
@@ -1121,10 +1120,10 @@
   "propstep:682aee97e35abf6f399b2745": "Reserved",
   "__meta__:listing:265cff8e61ed29f377482d236ef3fe0fc1f7fdc5599dc1e90ab989824e021584": "Reserved",
   "propstep:696a3aa7bf5b1f79d15a2a89": "Reserved",
-  "__meta__:listing:7c5e895bcdc2c11848064d6249ea83a8f23e210f1c2d4224331b9a8c1bdc3ac7": "Available",
-  "propstep:696a3ab7bf5b1f79d15a2b7a": "Available",
-  "__meta__:listing:409bca5c701024d885db926a34fd62b64065a083f45cb2535e8d37b9ffa80656": "Available",
-  "propstep:696a3ac7bf5b1f79d15a2c49": "Available",
+  "__meta__:listing:7c5e895bcdc2c11848064d6249ea83a8f23e210f1c2d4224331b9a8c1bdc3ac7": "Reserved",
+  "propstep:696a3ab7bf5b1f79d15a2b7a": "Reserved",
+  "__meta__:listing:409bca5c701024d885db926a34fd62b64065a083f45cb2535e8d37b9ffa80656": "Reserved",
+  "propstep:696a3ac7bf5b1f79d15a2c49": "Reserved",
   "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Reserved",
   "propstep:686432785072bd262ca9a78f": "Reserved",
   "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
