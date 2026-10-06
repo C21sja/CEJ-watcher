@@ -1061,8 +1061,8 @@
   "propstep:696a3c5b7bfa6a3e1984227f": "Available",
   "__meta__:listing:35e246add80ee7c3f7ee1815b7c5c41a243804c56fef2ea3ba6617d34ea3ba54": "Available",
   "propstep:696a3c59bf5b1f79d15a55e4": "Available",
-  "__meta__:listing:72ff8bbc9e5aa72157773e3cee65bec71e92d1cc79f323203f8f752c3109186a": "Available",
-  "propstep:696a3ab0bf5b1f79d15a2b02": "Available",
+  "__meta__:listing:72ff8bbc9e5aa72157773e3cee65bec71e92d1cc79f323203f8f752c3109186a": "Reserved",
+  "propstep:696a3ab0bf5b1f79d15a2b02": "Reserved",
   "__meta__:listing:d9dac0ac3aef4a07027bbfb9c977f681b88e494befc6e8d15e39c78343b0ce3e": "Reserved",
   "__meta__:listing:66b9cc496ca1c3ac3496e182b0e0a1b3faf5ef10bc41e9be09d23e1106ffd505": "Reserved",
   "propstep:66f06a1a35db520e6cd595cc": "Reserved",
@@ -1156,8 +1156,8 @@
   "__meta__:listing:28ffe2b8c97d3767781351060a13ee6b4f339be8e2eb026e6bf6a88f10515b65": "Available",
   "propstep:68d3eb2aa8541d5070e85c39": "Available",
   "https://cityapartment.dk/da/cityapartments/kirsteinsgade-5-4-th/": "Available",
-  "__meta__:listing:1f9b1ad1703623078a438c86cb77b6f033a60203bb31f75ed1095b6638a3d538": "Available",
-  "propstep:68d3eb29a8541d5070e85c12": "Available",
+  "__meta__:listing:1f9b1ad1703623078a438c86cb77b6f033a60203bb31f75ed1095b6638a3d538": "Reserved",
+  "propstep:68d3eb29a8541d5070e85c12": "Reserved",
   "__meta__:listing:eb4d2c689b2f8685f5f1a3249b20235141970649ffdff992edd01f59c6127559": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c2e": "Reserved",
   "__meta__:listing:a5a9a6eeb5499caa0be9906d4dc4f24b2fd9dfb755d44b0d1ecfefd11e11d160": "Available",
@@ -1178,5 +1178,9 @@
   "__meta__:listing:5e990f9f5c80a9f388d0e3061adbf6b902491172f19dec40112a176182574de0": "Available",
   "taurus:28182": "Available",
   "__meta__:listing:3b8761a4de3358bebc27cd0c2ec31483acf2f32ccc8c3ad91d0a4f9dc5179b20": "Available",
-  "propstep:6864327236d031023c68c681": "Available"
+  "propstep:6864327236d031023c68c681": "Available",
+  "__meta__:listing:45d0585f8c51dc32a473fca75a1bc9f5c8f7133d11defb6495a371a057160b23": "Available",
+  "propstep:6864327236d031023c68c67e": "Available",
+  "__meta__:listing:bde789608e00953d551adf3b257df8de8ba0b92e69ca9daf2da25fc16dc5b9f1": "Available",
+  "propstep:696a35e1f525ba5e566b05dd": "Available"
 }
