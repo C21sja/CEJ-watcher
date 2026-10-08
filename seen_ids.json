@@ -1172,8 +1172,8 @@
   "propstep:64998c242d7acc357eb0dd51": "Available",
   "__meta__:listing:8f1a0f39ce85e0c545a59af0b0815f7439bb14dd7ce416495ab19795ec4ba303": "Available",
   "propstep:64998c132d7acc357eb0d739": "Available",
-  "__meta__:listing:f74e571c38c2bdb17048634911b3c543471cd4f8257216d32cd1f5ea5be475db": "Available",
-  "propstep:64c0ef458f8ff90a4a0db9de": "Available",
+  "__meta__:listing:f74e571c38c2bdb17048634911b3c543471cd4f8257216d32cd1f5ea5be475db": "Reserved",
+  "propstep:64c0ef458f8ff90a4a0db9de": "Reserved",
   "95444552bbcd48698be16fb8387d1a47": "Available",
   "__meta__:listing:5e990f9f5c80a9f388d0e3061adbf6b902491172f19dec40112a176182574de0": "Available",
   "taurus:28182": "Available",
@@ -1205,5 +1205,9 @@
   "__meta__:listing:702e979e54ea4192a65a22313d93e412a6d13b6981d08e7646f254170db9169b": "Available",
   "propstep:696a3abcbf5b1f79d15a2bb3": "Available",
   "__meta__:listing:4f25a09babc8900f74a7abc23a60322d5b3ba36e6528e776e1e1ce1992d7c5dd": "Available",
-  "propstep:696a3ab27bfa6a3e19840201": "Available"
+  "propstep:696a3ab27bfa6a3e19840201": "Available",
+  "600730621597da4fe4b0f84cd6bf9c4d": "Available",
+  "https://cityapartment.dk/da/cityapartments/gerbrandsvej-2-1-th/": "Available",
+  "__meta__:listing:84a7caf9d2774f6d8e4067fd4d207c4b86f9ca7fb98246e47f71602830f3b962": "Available",
+  "propstep:6864326e5072bd262ca9a715": "Available"
 }
