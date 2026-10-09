@@ -1122,8 +1122,8 @@
   "propstep:696a3aa7bf5b1f79d15a2a89": "Reserved",
   "__meta__:listing:7c5e895bcdc2c11848064d6249ea83a8f23e210f1c2d4224331b9a8c1bdc3ac7": "Reserved",
   "propstep:696a3ab7bf5b1f79d15a2b7a": "Reserved",
-  "__meta__:listing:409bca5c701024d885db926a34fd62b64065a083f45cb2535e8d37b9ffa80656": "Available",
-  "propstep:696a3ac7bf5b1f79d15a2c49": "Available",
+  "__meta__:listing:409bca5c701024d885db926a34fd62b64065a083f45cb2535e8d37b9ffa80656": "Reserved",
+  "propstep:696a3ac7bf5b1f79d15a2c49": "Reserved",
   "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Reserved",
   "propstep:686432785072bd262ca9a78f": "Reserved",
   "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
@@ -1209,5 +1209,6 @@
   "600730621597da4fe4b0f84cd6bf9c4d": "Reserved",
   "https://cityapartment.dk/da/cityapartments/gerbrandsvej-2-1-th/": "Available",
   "__meta__:listing:84a7caf9d2774f6d8e4067fd4d207c4b86f9ca7fb98246e47f71602830f3b962": "Available",
-  "propstep:6864326e5072bd262ca9a715": "Available"
+  "propstep:6864326e5072bd262ca9a715": "Available",
+  "ef09c4eafcbcdf7c90670dd9e676664b": "Reserved"
 }
