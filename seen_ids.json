@@ -1128,8 +1128,8 @@
   "propstep:686432785072bd262ca9a78f": "Reserved",
   "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
   "propstep:69bbd51ad54f4346bebbf979": "Available",
-  "__meta__:listing:2e85c73ee3cc39dedc9bb6bc78ae1f67f7d02cdd441cdabb79bb4c3710a2e76b": "Available",
-  "propstep:64c0ef458f8ff90a4a0dba34": "Available",
+  "__meta__:listing:2e85c73ee3cc39dedc9bb6bc78ae1f67f7d02cdd441cdabb79bb4c3710a2e76b": "Reserved",
+  "propstep:64c0ef458f8ff90a4a0dba34": "Reserved",
   "e4fe1baee9d4471fa176bdb596cac221": "Reserved",
   "__meta__:listing:c450f28e2fc96cbe8cc9f356d76a06627e48280fd6726d4d23e3deef0e9a52a9": "Reserved",
   "propstep:68d3eb28a8541d5070e85bd1": "Reserved",
@@ -1218,5 +1218,11 @@
   "__meta__:listing:8eb55ebe0759e9f673c15fe1fccf951e876e26fb203888ebf6d937bcf2b4883f": "Available",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-4-25/": "Available",
   "__meta__:listing:5924211e1541ff8685b9cd5003dea9f5cfe0534005a856383565e9f5dec8189e": "Available",
-  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-2-doer-3/": "Available"
+  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-2-doer-3/": "Available",
+  "90f033be6a204ddc84dfce115fa1b10f": "Available",
+  "__meta__:listing:9ed0085bbfa2da9aeb9713f5195e6344af341157289cdf032506907aef4dba08": "Available",
+  "norhjem:/ejendomme/strynoegade/strynoegade-5-2-05/": "Available",
+  "__meta__:listing:2db20226bed9f7b323b4ee8931338c0c982f3b87bce3ce5237105b171240cff6": "Available",
+  "norhjem:/ejendomme/strynoegade/strynoegade-5-2-18/": "Available",
+  "235f0703a55e4414b6249e398413f95c": "Available"
 }
