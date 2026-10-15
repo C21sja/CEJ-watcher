@@ -440,7 +440,7 @@
   "4d3c66e5653340939db39f273231d6cc": "Reserved",
   "propstep:69d4d874c1c12530c6c755ec": "Available",
   "propstep:69d4d8767a8a3833bb2b3b53": "Reserved",
-  "propstep:69d4d8867a8a3833bb2b6aeb": "Available",
+  "propstep:69d4d8867a8a3833bb2b6aeb": "Reserved",
   "3ac9c9c792e345d3b7a3d9d4f098f2eb": "Reserved",
   "f8fc1c5e7e0173d045df3e70bd520b41": "Reserved",
   "propstep:68d3eb29a8541d5070e85c0c": "Available",
@@ -784,7 +784,7 @@
   "__meta__:listing:471f176038597dc45e4bcd3f14c7170c791751353fc14af5f5b4dfda4d02eaad": "Reserved",
   "__meta__:listing:80ba3294cc76b15dd0814b7f8b06c5cbd6beadb6ea7ea808364eb5a2a18c678c": "Reserved",
   "__meta__:listing:d7edf53d1e686502ac0371de483cbab8f3e1b4686600b4180d712d9322606116": "Reserved",
-  "__meta__:listing:64fbf181d1bf13e531bbda0f28efc44cce643a612b907e4edef26ee4ed02117b": "Available",
+  "__meta__:listing:64fbf181d1bf13e531bbda0f28efc44cce643a612b907e4edef26ee4ed02117b": "Reserved",
   "__meta__:listing:b3256cfc797718c27b137fa96595bf94227b81d2fa8cbb25ec357bc068bdda04": "Reserved",
   "__meta__:listing:b5a8f4ad59f3b0fbbfd87e0a4c5b3d5dcf1a30e2f7a03db1073b9ef449ae65b0": "Available",
   "lejeboligmaegleren:17484": "Available",
@@ -1225,5 +1225,9 @@
   "__meta__:listing:2db20226bed9f7b323b4ee8931338c0c982f3b87bce3ce5237105b171240cff6": "Available",
   "norhjem:/ejendomme/strynoegade/strynoegade-5-2-18/": "Available",
   "235f0703a55e4414b6249e398413f95c": "Available",
-  "https://cityapartment.dk/da/cityapartments/finsensvej-37d-1-th/": "Available"
+  "https://cityapartment.dk/da/cityapartments/finsensvej-37d-1-th/": "Available",
+  "__meta__:listing:28d84849a376e0146b52a6707303c1ae007026daf44dd9ec4911aaea43258fcc": "Available",
+  "propstep:68edfc2fbc56665b69b7cf23": "Available",
+  "__meta__:listing:2dc0409fdb3b4429a53d738d9ab0a0827c1f17f2077fac0361f27bdd53bb4158": "Available",
+  "propstep:69b1ca0849a01c62fc13c512": "Available"
 }
