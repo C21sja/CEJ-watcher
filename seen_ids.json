@@ -483,7 +483,7 @@
   "propstep:68d3eb2ba8541d5070e85c98": "Reserved",
   "propstep:68d3eb2ba8541d5070e85ca2": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cac": "Reserved",
-  "propstep:68d3eb2ba8541d5070e85cb6": "Available",
+  "propstep:68d3eb2ba8541d5070e85cb6": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c9a": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cc0": "Reserved",
   "propstep:68d3eb2ba8541d5070e85c9e": "Reserved",
@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "90dcab7d46490c23dcf1dc0637b2b1c471528272851d9b0eeca60c1178491203",
+    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,9 +675,7 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
-      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
-      "www.akutbolig.dk:rent:akutbolig.dk:714501",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
     ]
@@ -698,7 +696,7 @@
   "__meta__:baseline:AKF via Propstep": "complete",
   "__meta__:listing:ecea853dc1bb5890b5df5c38cf4baf03e434cc6d654e3e4129a96f544e696d71": "Available",
   "__meta__:listing:3cd1e37f459c184d223ea5f3645836e15aa92d5c359cd7adb1a29ee3056db2c7": "Reserved",
-  "__meta__:listing:cd2e0c5d96a22ca9564feae3d8ef740f6ccc2e7d8cfa7a8679fd7f005522c212": "Available",
+  "__meta__:listing:cd2e0c5d96a22ca9564feae3d8ef740f6ccc2e7d8cfa7a8679fd7f005522c212": "Reserved",
   "__meta__:listing:394c2dd5aa561156dcd72bdba86839b343bf91dabbcd7f52ececa57686c46135": "Reserved",
   "__meta__:listing:409b007c464cbf13502d6b0be548e5d27af808da4aa2bacd5723a81aacd8ecf6": "Reserved",
   "__meta__:listing:1c8fbd7953ba54e55fd4be13414ddbea52e23e9d5289eaf4cc9987b9f26679ee": "Reserved",
@@ -894,8 +892,8 @@
   "propstep:68d3eb2da8541d5070e85d5b": "Reserved",
   "__meta__:listing:e9e5be7067ad4e0581b28438abc8ea5d090311145a3e6a86c2689b096660c5c9": "Available",
   "propstep:68d3eb2da8541d5070e85d5e": "Available",
-  "__meta__:listing:592cdf59a8e6b1de80f9a746fd7540178f4a91d50bc382ff004942e2712ae5db": "Available",
-  "propstep:68d3eb2da8541d5070e85d62": "Available",
+  "__meta__:listing:592cdf59a8e6b1de80f9a746fd7540178f4a91d50bc382ff004942e2712ae5db": "Reserved",
+  "propstep:68d3eb2da8541d5070e85d62": "Reserved",
   "__meta__:listing:c3c3edd38d9b8f0b9323bd8e7eb148fde97241e0df92efa40638d122c6dd533e": "Available",
   "propstep:68d3eb2da8541d5070e85d64": "Available",
   "__meta__:listing:4219c4f486042d39df807f224e703fe69b9706073e03cf38e7e06f6a5779c11e": "Available",
@@ -1248,5 +1246,6 @@
   "43dc568ec57f4951a03d2be4cc439302": "Reserved",
   "5246f9bf4dad717840ebcb923e0b4550": "Reserved",
   "__meta__:listing:7ad017d5270973a0be8ce96b07de8b9c0b188f312d011645d281c8750efd9279": "Available",
-  "propstep:66f06a1e87dbc9256816b072": "Available"
+  "propstep:66f06a1e87dbc9256816b072": "Available",
+  "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-st-tv/": "Available"
 }
