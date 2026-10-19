@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
+    "signature": "90dcab7d46490c23dcf1dc0637b2b1c471528272851d9b0eeca60c1178491203",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,7 +675,9 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
+      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
+      "www.akutbolig.dk:rent:akutbolig.dk:714501",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
     ]
@@ -829,7 +831,7 @@
   "norhjem:/ejendomme/strynoegade/strynoegade-5-4-08/": "Reserved",
   "c71b793a1da24412ad07885b7a11cb75": "Reserved",
   "__meta__:listing:e7fc8d5acba7eb6cd29a32e0d59849471c076d0f5f82cca8bd16d9d50780770f": "Available",
-  "propstep:682aee95e35abf6f399b26db": "Reserved",
+  "propstep:682aee95e35abf6f399b26db": "Available",
   "__meta__:listing:97f9efea5644dbc8a0dda1f466f7eb1b95f40ac52edb68c20402fd523d514688": "Reserved",
   "propstep:682aee97e35abf6f399b2749": "Reserved",
   "__meta__:listing:5ffc352cfd756ef1f7606b79e2635bcbdec39182015ceedbf5db335ad051f4e1": "Available",
@@ -1145,7 +1147,7 @@
   "d18e09cd3ed14c3bd1e3c4d12ce60a97": "Reserved",
   "__meta__:listing:90f2663be3aad02ce595ea12a077b92f8b0b6d8663f988d5404be1c25c46ebcb": "Available",
   "__meta__:listing:a4cc06ee8180de3d4b23304d842b5086eca011d42ab07f11bb201a9ed18deb77": "Available",
-  "__meta__:listing:4d479642e8c06acf1df6761b2a650744c6fe332c6ed9c1766442e22698430b4e": "Reserved",
+  "__meta__:listing:4d479642e8c06acf1df6761b2a650744c6fe332c6ed9c1766442e22698430b4e": "Available",
   "__meta__:listing:d06ba3c644159e56502e52f2e876dc2e786b8c6a214c4cd79559b0330f5b1e66": "Available",
   "__meta__:listing:6fe8c5774435bc37259f0086ca24544b9527e7cb4ca112c1ae7371ca403bd321": "Available",
   "__meta__:listing:df8b49627ac534f354e828be96e346748bb6db79bb7ba8aee4b12ce5d76dfa9f": "Available",
@@ -1178,8 +1180,8 @@
   "95444552bbcd48698be16fb8387d1a47": "Available",
   "__meta__:listing:5e990f9f5c80a9f388d0e3061adbf6b902491172f19dec40112a176182574de0": "Available",
   "taurus:28182": "Available",
-  "__meta__:listing:3b8761a4de3358bebc27cd0c2ec31483acf2f32ccc8c3ad91d0a4f9dc5179b20": "Available",
-  "propstep:6864327236d031023c68c681": "Available",
+  "__meta__:listing:3b8761a4de3358bebc27cd0c2ec31483acf2f32ccc8c3ad91d0a4f9dc5179b20": "Reserved",
+  "propstep:6864327236d031023c68c681": "Reserved",
   "__meta__:listing:45d0585f8c51dc32a473fca75a1bc9f5c8f7133d11defb6495a371a057160b23": "Available",
   "propstep:6864327236d031023c68c67e": "Available",
   "__meta__:listing:bde789608e00953d551adf3b257df8de8ba0b92e69ca9daf2da25fc16dc5b9f1": "Available",
@@ -1243,5 +1245,8 @@
   "lejeboligmaegleren:19734": "Available",
   "__meta__:listing:7273ffa59d9f42e256c7c0f537df79e9282b65ff5760160191f77a408a1c9d4c": "Available",
   "lejeboligmaegleren:19749": "Available",
-  "43dc568ec57f4951a03d2be4cc439302": "Available"
+  "43dc568ec57f4951a03d2be4cc439302": "Reserved",
+  "5246f9bf4dad717840ebcb923e0b4550": "Reserved",
+  "__meta__:listing:7ad017d5270973a0be8ce96b07de8b9c0b188f312d011645d281c8750efd9279": "Available",
+  "propstep:66f06a1e87dbc9256816b072": "Available"
 }
