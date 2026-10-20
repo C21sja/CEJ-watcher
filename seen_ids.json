@@ -65,7 +65,7 @@
   "propstep:68d3eb2aa8541d5070e85c35": "Reserved",
   "propstep:68d3eb28a8541d5070e85bd8": "Reserved",
   "propstep:68d3eb29a8541d5070e85be0": "Reserved",
-  "propstep:68d3eb29a8541d5070e85bf2": "Reserved",
+  "propstep:68d3eb29a8541d5070e85bf2": "Available",
   "propstep:68d3eb29a8541d5070e85c16": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c37": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c3d": "Reserved",
@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
+    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,6 +675,7 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
+      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -1060,8 +1061,8 @@
   "propstep:696a3c55bf5b1f79d15a55b8": "Reserved",
   "__meta__:listing:cb15ce125856a096d0a8adacfc848df38c81b85b49cadc43e91dff243cf3eacd": "Available",
   "propstep:696a3c5b7bfa6a3e1984227f": "Available",
-  "__meta__:listing:35e246add80ee7c3f7ee1815b7c5c41a243804c56fef2ea3ba6617d34ea3ba54": "Available",
-  "propstep:696a3c59bf5b1f79d15a55e4": "Available",
+  "__meta__:listing:35e246add80ee7c3f7ee1815b7c5c41a243804c56fef2ea3ba6617d34ea3ba54": "Reserved",
+  "propstep:696a3c59bf5b1f79d15a55e4": "Reserved",
   "__meta__:listing:72ff8bbc9e5aa72157773e3cee65bec71e92d1cc79f323203f8f752c3109186a": "Reserved",
   "propstep:696a3ab0bf5b1f79d15a2b02": "Reserved",
   "__meta__:listing:d9dac0ac3aef4a07027bbfb9c977f681b88e494befc6e8d15e39c78343b0ce3e": "Reserved",
@@ -1157,8 +1158,8 @@
   "__meta__:listing:28ffe2b8c97d3767781351060a13ee6b4f339be8e2eb026e6bf6a88f10515b65": "Available",
   "propstep:68d3eb2aa8541d5070e85c39": "Available",
   "https://cityapartment.dk/da/cityapartments/kirsteinsgade-5-4-th/": "Available",
-  "__meta__:listing:1f9b1ad1703623078a438c86cb77b6f033a60203bb31f75ed1095b6638a3d538": "Reserved",
-  "propstep:68d3eb29a8541d5070e85c12": "Reserved",
+  "__meta__:listing:1f9b1ad1703623078a438c86cb77b6f033a60203bb31f75ed1095b6638a3d538": "Available",
+  "propstep:68d3eb29a8541d5070e85c12": "Available",
   "__meta__:listing:eb4d2c689b2f8685f5f1a3249b20235141970649ffdff992edd01f59c6127559": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c2e": "Reserved",
   "__meta__:listing:a5a9a6eeb5499caa0be9906d4dc4f24b2fd9dfb755d44b0d1ecfefd11e11d160": "Available",
@@ -1178,8 +1179,8 @@
   "95444552bbcd48698be16fb8387d1a47": "Available",
   "__meta__:listing:5e990f9f5c80a9f388d0e3061adbf6b902491172f19dec40112a176182574de0": "Available",
   "taurus:28182": "Available",
-  "__meta__:listing:3b8761a4de3358bebc27cd0c2ec31483acf2f32ccc8c3ad91d0a4f9dc5179b20": "Reserved",
-  "propstep:6864327236d031023c68c681": "Reserved",
+  "__meta__:listing:3b8761a4de3358bebc27cd0c2ec31483acf2f32ccc8c3ad91d0a4f9dc5179b20": "Available",
+  "propstep:6864327236d031023c68c681": "Available",
   "__meta__:listing:45d0585f8c51dc32a473fca75a1bc9f5c8f7133d11defb6495a371a057160b23": "Available",
   "propstep:6864327236d031023c68c67e": "Available",
   "__meta__:listing:bde789608e00953d551adf3b257df8de8ba0b92e69ca9daf2da25fc16dc5b9f1": "Available",
@@ -1247,5 +1248,6 @@
   "5246f9bf4dad717840ebcb923e0b4550": "Reserved",
   "__meta__:listing:7ad017d5270973a0be8ce96b07de8b9c0b188f312d011645d281c8750efd9279": "Available",
   "propstep:66f06a1e87dbc9256816b072": "Available",
-  "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-st-tv/": "Available"
+  "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-st-tv/": "Available",
+  "__meta__:listing:c3c29a5828a406ac1066fa2e136f4cddd04917b7eab4aec3a69d40730f860f11": "Available"
 }
