@@ -180,7 +180,7 @@
   "propstep:696a3b667bfa6a3e19840dac": "Rented",
   "propstep:66f13e1035db520e6ce4d2dd": "Rented",
   "propstep:66f13e1187dbc9256826f283": "Rented",
-  "propstep:682ade17e35abf6f39916636": "Reserved",
+  "propstep:682ade17e35abf6f39916636": "Available",
   "propstep:682ade18e35abf6f39916653": "Reserved",
   "propstep:682ade18e35abf6f39916667": "Reserved",
   "propstep:682ade17e35abf6f3991663a": "Reserved",
@@ -962,7 +962,7 @@
   "norhjem:/ejendomme/teglhuset/teglholmsgade-36-4-doer4/": "Reserved",
   "fd5d14d88e8945b79e37a45fdc7c9c34": "Reserved",
   "__meta__:listing:8e8d776c959709f72053cdeda6d659bf0d0d1c47b70e70d90e15a71089f13101": "Available",
-  "propstep:682aee97e35abf6f399b274d": "Available",
+  "propstep:682aee97e35abf6f399b274d": "Reserved",
   "79b282f49daa0b4336ee0be6a992b862": "Reserved",
   "__meta__:listing:b227113abc339bd13bd988ea50d2b92feb28863be8666b3a7264ed5cf480bf57": "Reserved",
   "norhjem:/ejendomme/roskildevej/roskildevej-33-a-st-102/": "Reserved",
@@ -1148,7 +1148,7 @@
   "__meta__:listing:a4cc06ee8180de3d4b23304d842b5086eca011d42ab07f11bb201a9ed18deb77": "Available",
   "__meta__:listing:4d479642e8c06acf1df6761b2a650744c6fe332c6ed9c1766442e22698430b4e": "Available",
   "__meta__:listing:d06ba3c644159e56502e52f2e876dc2e786b8c6a214c4cd79559b0330f5b1e66": "Available",
-  "__meta__:listing:6fe8c5774435bc37259f0086ca24544b9527e7cb4ca112c1ae7371ca403bd321": "Available",
+  "__meta__:listing:6fe8c5774435bc37259f0086ca24544b9527e7cb4ca112c1ae7371ca403bd321": "Reserved",
   "__meta__:listing:df8b49627ac534f354e828be96e346748bb6db79bb7ba8aee4b12ce5d76dfa9f": "Available",
   "propstep:66f13e2135db520e6ce4dfbf": "Available",
   "__meta__:listing:cb3a80aa95eb3d5228da799d3a2a18f4065a4d184f937c36ed975600f6b307b0": "Available",
@@ -1251,5 +1251,6 @@
   "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-st-tv/": "Available",
   "__meta__:listing:c3c29a5828a406ac1066fa2e136f4cddd04917b7eab4aec3a69d40730f860f11": "Available",
   "__meta__:listing:198c705b3d08d40aa0580407f039bb1915dfe242c93936dd9000042924c3963e": "Available",
-  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-4-doer7/": "Available"
+  "norhjem:/ejendomme/teglhuset/teglholmsgade-36-4-doer7/": "Available",
+  "__meta__:listing:a1cfde50724f96c27d406c5ae2d0af559fa53b2451f0070f85e245872ab9d1e7": "Available"
 }
