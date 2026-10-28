@@ -65,7 +65,7 @@
   "propstep:68d3eb2aa8541d5070e85c35": "Reserved",
   "propstep:68d3eb28a8541d5070e85bd8": "Reserved",
   "propstep:68d3eb29a8541d5070e85be0": "Reserved",
-  "propstep:68d3eb29a8541d5070e85bf2": "Reserved",
+  "propstep:68d3eb29a8541d5070e85bf2": "Available",
   "propstep:68d3eb29a8541d5070e85c16": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c37": "Reserved",
   "propstep:68d3eb2aa8541d5070e85c3d": "Reserved",
@@ -572,7 +572,7 @@
   "b4c62f79c3624c988a09ca9e9a27083b": "Reserved",
   "c91df371214942af8394802618aea875": "Reserved",
   "propstep:67f64fc9bba3eb36eeb1c152": "Reserved",
-  "propstep:64998d932d7acc357eb10bcb": "Reserved",
+  "propstep:64998d932d7acc357eb10bcb": "Available",
   "propstep:64c0ef458f8ff90a4a0dba74": "Reserved",
   "propstep:682aee96e35abf6f399b271f": "Available",
   "e7789636b4e8424bb3967d84675bfd2f": "Reserved",
@@ -1248,7 +1248,7 @@
   "__meta__:listing:7ad017d5270973a0be8ce96b07de8b9c0b188f312d011645d281c8750efd9279": "Available",
   "propstep:66f06a1e87dbc9256816b072": "Available",
   "https://cityapartment.dk/da/cityapartments/falkonervaenget-21-st-tv/": "Available",
-  "__meta__:listing:c3c29a5828a406ac1066fa2e136f4cddd04917b7eab4aec3a69d40730f860f11": "Reserved",
+  "__meta__:listing:c3c29a5828a406ac1066fa2e136f4cddd04917b7eab4aec3a69d40730f860f11": "Available",
   "__meta__:listing:198c705b3d08d40aa0580407f039bb1915dfe242c93936dd9000042924c3963e": "Reserved",
   "norhjem:/ejendomme/teglhuset/teglholmsgade-36-4-doer7/": "Reserved",
   "__meta__:listing:a1cfde50724f96c27d406c5ae2d0af559fa53b2451f0070f85e245872ab9d1e7": "Available",
@@ -1267,5 +1267,8 @@
   "__meta__:listing:a990483a0c1e9ecfe2a4234d5d60c73f741169293dc4e50bff1cae9e7378e5f5": "Available",
   "propstep:64c0ef458f8ff90a4a0dba24": "Available",
   "__meta__:listing:3f8cdb7ab7c19079d94fd3e67338663b1004cc6fdc5baabd90922d8f41ac5dc2": "Available",
-  "propstep:682aee96e35abf6f399b26f7": "Available"
+  "propstep:682aee96e35abf6f399b26f7": "Available",
+  "__meta__:listing:55dba103ca5ea545a6de3bd7f92e296c5fdcb5d6fc9aeb2b0cc4b8906453db55": "Available",
+  "propstep:64998bce2d7acc357eb0c26e": "Available",
+  "__meta__:listing:8d0a7fd1e859544c5524e84b3d843d41817487b75d8bb793f28b80921c18c123": "Available"
 }
