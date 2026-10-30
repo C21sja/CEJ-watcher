@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
+    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,7 +675,6 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
-      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -1066,8 +1065,8 @@
   "__meta__:listing:72ff8bbc9e5aa72157773e3cee65bec71e92d1cc79f323203f8f752c3109186a": "Reserved",
   "propstep:696a3ab0bf5b1f79d15a2b02": "Reserved",
   "__meta__:listing:d9dac0ac3aef4a07027bbfb9c977f681b88e494befc6e8d15e39c78343b0ce3e": "Reserved",
-  "__meta__:listing:66b9cc496ca1c3ac3496e182b0e0a1b3faf5ef10bc41e9be09d23e1106ffd505": "Reserved",
-  "propstep:66f06a1a35db520e6cd595cc": "Reserved",
+  "__meta__:listing:66b9cc496ca1c3ac3496e182b0e0a1b3faf5ef10bc41e9be09d23e1106ffd505": "Available",
+  "propstep:66f06a1a35db520e6cd595cc": "Available",
   "72798d32de312bffda3f08db5f00c92d": "Reserved",
   "__meta__:listing:87d0d9f8f791647524521d92d324fc3819965847853954a3890f18b130250c97": "Reserved",
   "propstep:696a3ab87bfa6a3e19840262": "Reserved",
@@ -1260,7 +1259,7 @@
   "propstep:67f64fcebba3eb36eeb1c4a9": "Available",
   "__meta__:listing:2fa5755dc34a1e9972504041fd0e692e160f9e69892c1e51dae3b27ca3e70ef2": "Reserved",
   "propstep:696a3aa4bf5b1f79d15a2a69": "Reserved",
-  "a88bb7518f3cb428782b1573afe18df7": "Available",
+  "a88bb7518f3cb428782b1573afe18df7": "Reserved",
   "dc755e46593537eac9528496e51e2d6e": "Reserved",
   "https://cityapartment.dk/da/cityapartments/masnedoegade-16-st-tv/": "Available",
   "__meta__:listing:a4c1f08db1dd70531f3ac18dc657fad8f65cb8111cb89531062fb01fdf1c46d5": "Available",
@@ -1272,8 +1271,8 @@
   "__meta__:listing:55dba103ca5ea545a6de3bd7f92e296c5fdcb5d6fc9aeb2b0cc4b8906453db55": "Available",
   "propstep:64998bce2d7acc357eb0c26e": "Available",
   "__meta__:listing:8d0a7fd1e859544c5524e84b3d843d41817487b75d8bb793f28b80921c18c123": "Available",
-  "__meta__:listing:2a63ae25f9e3e52fa19120905609eaeff0d7b830b3e9a1a810acd5db417769d7": "Available",
-  "propstep:66f06a1335db520e6cd59578": "Available",
+  "__meta__:listing:2a63ae25f9e3e52fa19120905609eaeff0d7b830b3e9a1a810acd5db417769d7": "Reserved",
+  "propstep:66f06a1335db520e6cd59578": "Reserved",
   "__meta__:listing:70eea50c792b1dee2c755a9eac8c1fd4096ff53ce49b6acce4e54b45c58f66a8": "Available",
   "propstep:66f06a1487dbc9256816b003": "Available",
   "__meta__:listing:e7e255760878fa2442509cd0b5127ac0732ad56d3b2c7ffa27ff943a5d5470fe": "Available",
@@ -1281,5 +1280,9 @@
   "__meta__:listing:9bcd1be76a7ec22b965e7e8d7387b4293c633d6afa152cf00a30f53b5ceb615e": "Available",
   "propstep:6ae092056bae9183a78bf4db": "Available",
   "__meta__:listing:3348b99d3759135146d38a9c7cc0f0dad08b37a900b77d0d5824bb9bc822319d": "Available",
-  "propstep:6864327436d031023c68c6b1": "Available"
+  "propstep:6864327436d031023c68c6b1": "Available",
+  "e89abf90604745938e1e8a418c4cef88": "Reserved",
+  "e68197bb6e904f6f9e3598a2f4f631bc": "Reserved",
+  "__meta__:listing:1daf21fa5f7a7cf3099ecc59f5f0fad2317083210020bd64932a7a1a8902ec61": "Available",
+  "propstep:682aee96e35abf6f399b26f5": "Available"
 }
