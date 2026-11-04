@@ -1203,8 +1203,8 @@
   "6598100068eb44beab8d7894e489c0a7": "Reserved",
   "__meta__:listing:9de53e8d039c36391583b9f4608a476b9eb07c95872e4917bd4fc154c6109e5e": "Reserved",
   "propstep:696a3c637bfa6a3e19842301": "Reserved",
-  "__meta__:listing:702e979e54ea4192a65a22313d93e412a6d13b6981d08e7646f254170db9169b": "Available",
-  "propstep:696a3abcbf5b1f79d15a2bb3": "Available",
+  "__meta__:listing:702e979e54ea4192a65a22313d93e412a6d13b6981d08e7646f254170db9169b": "Reserved",
+  "propstep:696a3abcbf5b1f79d15a2bb3": "Reserved",
   "__meta__:listing:4f25a09babc8900f74a7abc23a60322d5b3ba36e6528e776e1e1ce1992d7c5dd": "Reserved",
   "propstep:696a3ab27bfa6a3e19840201": "Reserved",
   "600730621597da4fe4b0f84cd6bf9c4d": "Reserved",
@@ -1294,5 +1294,7 @@
   "taurus:20047": "Available",
   "4e2a8ab2a3bd4f42828458ce2848b07e": "Reserved",
   "705a18fe8bfe4cb2aad231df12f0085b": "Reserved",
-  "1b6334aec36560ca3c6f4c65e0a32fb6": "Reserved"
+  "1b6334aec36560ca3c6f4c65e0a32fb6": "Reserved",
+  "__meta__:listing:72b11b39bafbbececd6c5e6e192d68aef768674db8ad676c6956c86c9bd057fe": "Available",
+  "propstep:696a3abb7bfa6a3e19840286": "Available"
 }
