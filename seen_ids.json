@@ -598,7 +598,7 @@
   "propstep:68d3eb2ca8541d5070e85ced": "Reserved",
   "propstep:68d3eb2ca8541d5070e85cef": "Reserved",
   "propstep:68d3eb2ba8541d5070e85cc2": "Reserved",
-  "propstep:68d3eb2ca8541d5070e85cd4": "Reserved",
+  "propstep:68d3eb2ca8541d5070e85cd4": "Available",
   "propstep:68d3eb2ca8541d5070e85ce5": "Available",
   "propstep:68d3eb2ca8541d5070e85cf1": "Available",
   "propstep:68d3eb2ca8541d5070e85cf3": "Reserved",
@@ -744,7 +744,7 @@
   "__meta__:listing:00b428b606ac053a87e45c2e726938b83d08e49aaf97778ce5ab1067fbf3efbe": "Reserved",
   "__meta__:listing:3a7bc6361983cee7ff24c0f2c37bfa3c0129090f367842ab2ffcf1564cb345ce": "Reserved",
   "__meta__:listing:b25861084e3d78d420741055afa5d4b52bf0ec4f22b4ac4387ec0e2fabc13665": "Reserved",
-  "__meta__:listing:f3cb8087e8f29bbaf5ed5d9204d43155182b824792f3de613b47bbec72af8b7e": "Reserved",
+  "__meta__:listing:f3cb8087e8f29bbaf5ed5d9204d43155182b824792f3de613b47bbec72af8b7e": "Available",
   "__meta__:listing:c1f7f6afa98e3578c5fc41b56501ae4674a8f5e2b9b165fa5408b892f1a0c1e4": "Reserved",
   "__meta__:listing:8204acb14d74bc04f72268715e1cbfe8d81efaa1d6dbb9f44a06e387f5682d77": "Reserved",
   "__meta__:listing:dcd57776e8f707b09bec70ff473c01dac479cb58b0803a5fade9eabbc7f99487": "Reserved",
@@ -1150,8 +1150,8 @@
   "__meta__:listing:6fe8c5774435bc37259f0086ca24544b9527e7cb4ca112c1ae7371ca403bd321": "Reserved",
   "__meta__:listing:df8b49627ac534f354e828be96e346748bb6db79bb7ba8aee4b12ce5d76dfa9f": "Available",
   "propstep:66f13e2135db520e6ce4dfbf": "Available",
-  "__meta__:listing:cb3a80aa95eb3d5228da799d3a2a18f4065a4d184f937c36ed975600f6b307b0": "Reserved",
-  "propstep:64c0ef458f8ff90a4a0db9fe": "Reserved",
+  "__meta__:listing:cb3a80aa95eb3d5228da799d3a2a18f4065a4d184f937c36ed975600f6b307b0": "Available",
+  "propstep:64c0ef458f8ff90a4a0db9fe": "Available",
   "__meta__:listing:d6fcee9e675b36afa8617bddf25bc23b67b6f5d600e7028c68efced87fd3c247": "Reserved",
   "propstep:68d3eb29a8541d5070e85bfe": "Reserved",
   "__meta__:listing:28ffe2b8c97d3767781351060a13ee6b4f339be8e2eb026e6bf6a88f10515b65": "Available",
@@ -1328,5 +1328,6 @@
   "propstep:6908baf37ff4b306307d04ee": "Available",
   "__meta__:listing:e2dd5918db0fb35e2dd65c983d82684e83e5a52d3d656013e38dacbe6b2f9658": "Available",
   "norhjem:/ejendomme/h-c-oersteds-vej/h-c-oersteds-vej-63-3-doer-1/": "Available",
-  "da030e46608c817649cb2d989d93ff7f": "Available"
+  "da030e46608c817649cb2d989d93ff7f": "Available",
+  "c3c11e78e7ef4ee3962a36e68e4a1783": "Reserved"
 }
