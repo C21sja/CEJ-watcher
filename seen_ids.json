@@ -413,7 +413,7 @@
   "propstep:696a3babbf5b1f79d15a3b86": "Reserved",
   "propstep:686432755072bd262ca9a763": "Available",
   "propstep:66f13e0b87dbc9256826f21e": "Available",
-  "propstep:68d3eb2aa8541d5070e85c66": "Reserved",
+  "propstep:68d3eb2aa8541d5070e85c66": "Available",
   "propstep:68d3eb2aa8541d5070e85c68": "Available",
   "propstep:68d3eb2aa8541d5070e85c6a": "Available",
   "propstep:68d3eb2aa8541d5070e85c6c": "Available",
@@ -699,7 +699,7 @@
   "__meta__:listing:cd2e0c5d96a22ca9564feae3d8ef740f6ccc2e7d8cfa7a8679fd7f005522c212": "Available",
   "__meta__:listing:394c2dd5aa561156dcd72bdba86839b343bf91dabbcd7f52ececa57686c46135": "Reserved",
   "__meta__:listing:409b007c464cbf13502d6b0be548e5d27af808da4aa2bacd5723a81aacd8ecf6": "Reserved",
-  "__meta__:listing:1c8fbd7953ba54e55fd4be13414ddbea52e23e9d5289eaf4cc9987b9f26679ee": "Reserved",
+  "__meta__:listing:1c8fbd7953ba54e55fd4be13414ddbea52e23e9d5289eaf4cc9987b9f26679ee": "Available",
   "__meta__:listing:3e401b50af7c5dbb34fa651bc145be5025ab62ee392647442900bfdaa76e6055": "Available",
   "__meta__:listing:dc8a48798451267888005437078bc9474b32c8312533e5920f496e17ec4ecc3a": "Available",
   "__meta__:listing:b9c2326c77e6992df8f9d2d3b7f2bb366fa23f8ad4822e082d6ebc3eea8d1d24": "Available",
@@ -1320,7 +1320,7 @@
   "__meta__:listing:c2ce000f6f8b22b694f0298d7444ca0a9a9684c45a4bbf7e2f985ae23e71ed56": "Available",
   "lejeboligmaegleren:19522": "Available",
   "d7931a7bccfe42db8c176bdec0ba9190": "Available",
-  "a240838d5ae84abf9b42e48aed947aad": "Available",
+  "a240838d5ae84abf9b42e48aed947aad": "Reserved",
   "__meta__:listing:6de98a6d5cbf1fe4f4043e72fd19b03a9f7ed2928ae16ae06a5cdb3c018f057e": "Available",
   "__meta__:listing:dee5eb03d7dde8acaf78339f91db0c4224b275128b5d800c4c000fc1cd2b1cf0": "Available",
   "propstep:6aaa4803de9f9591cb1a74dc": "Available",
@@ -1332,5 +1332,6 @@
   "c3c11e78e7ef4ee3962a36e68e4a1783": "Reserved",
   "88f9e066c7b6487eb8b6b9fba119b08f": "Available",
   "8c672e3de5f14325b399005875d8db5b": "Available",
-  "21eddc3493424461b6875f8bf38c8af6": "Available"
+  "21eddc3493424461b6875f8bf38c8af6": "Available",
+  "7bcaf51b13b749909cb0de7c1233fc7d": "Available"
 }
