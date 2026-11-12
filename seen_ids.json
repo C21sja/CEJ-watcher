@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
+    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -674,7 +674,6 @@
       "www.akutbolig.dk:rent:akutbolig.dk:313162",
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
-      "www.akutbolig.dk:rent:akutbolig.dk:649115",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -1338,5 +1337,7 @@
   "0979ba1d7ad44bfaacb0c997f67f018a": "Available",
   "__meta__:listing:c34432127f694e47fe844f12186e0825b1d1f02c8faa6bada8920c4afba5ff4d": "Available",
   "taurus:28819": "Available",
-  "076dedfd1dc67f8e9b5d32f948158819": "Available"
+  "076dedfd1dc67f8e9b5d32f948158819": "Available",
+  "__meta__:listing:3cbd1917f39bee381041faef3d8b46a52f252df70002b11b43a0e2efe75cdcfd": "Available",
+  "propstep:686432735072bd262ca9a74a": "Available"
 }
