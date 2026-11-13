@@ -1137,8 +1137,8 @@
   "propstep:64c0ef458f8ff90a4a0dba32": "Reserved",
   "__meta__:listing:4df66dac644126475c650afdd9e649e976c3e5cbb84f20c109ddcad7069f7582": "Reserved",
   "propstep:64c0ef458f8ff90a4a0dba20": "Reserved",
-  "__meta__:listing:f570626c4072a87b5eed273c2d6fd81d728f3d9f4b7f0e0d1ff745b1dc99bf59": "Reserved",
-  "propstep:67f64fcbbba3eb36eeb1c1bb": "Reserved",
+  "__meta__:listing:f570626c4072a87b5eed273c2d6fd81d728f3d9f4b7f0e0d1ff745b1dc99bf59": "Available",
+  "propstep:67f64fcbbba3eb36eeb1c1bb": "Available",
   "ca6b633c0fa9497f8b0f826cac92197a": "Reserved",
   "https://cityapartment.dk/da/cityapartments/noerre-farimagsgade-31-5-th/": "Available",
   "d18e09cd3ed14c3bd1e3c4d12ce60a97": "Reserved",
@@ -1318,7 +1318,7 @@
   "lejeboligmaegleren:19817": "Available",
   "__meta__:listing:c2ce000f6f8b22b694f0298d7444ca0a9a9684c45a4bbf7e2f985ae23e71ed56": "Available",
   "lejeboligmaegleren:19522": "Available",
-  "d7931a7bccfe42db8c176bdec0ba9190": "Available",
+  "d7931a7bccfe42db8c176bdec0ba9190": "Reserved",
   "a240838d5ae84abf9b42e48aed947aad": "Reserved",
   "__meta__:listing:6de98a6d5cbf1fe4f4043e72fd19b03a9f7ed2928ae16ae06a5cdb3c018f057e": "Available",
   "__meta__:listing:dee5eb03d7dde8acaf78339f91db0c4224b275128b5d800c4c000fc1cd2b1cf0": "Reserved",
@@ -1339,5 +1339,7 @@
   "taurus:28819": "Available",
   "076dedfd1dc67f8e9b5d32f948158819": "Available",
   "__meta__:listing:3cbd1917f39bee381041faef3d8b46a52f252df70002b11b43a0e2efe75cdcfd": "Available",
-  "propstep:686432735072bd262ca9a74a": "Available"
+  "propstep:686432735072bd262ca9a74a": "Available",
+  "__meta__:listing:5998c37a3851cf7bf8293b5e0ab462092978238297d57007bad8db716d8dc7a7": "Available",
+  "propstep:696a3bacbf5b1f79d15a3b92": "Available"
 }
