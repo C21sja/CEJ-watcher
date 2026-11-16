@@ -1126,8 +1126,8 @@
   "propstep:696a3ac7bf5b1f79d15a2c49": "Reserved",
   "__meta__:listing:ccce0cafd97622a2f9945ffba8c4a3c7c0a374ce29a3a993b0ac793b533e9693": "Reserved",
   "propstep:686432785072bd262ca9a78f": "Reserved",
-  "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Available",
-  "propstep:69bbd51ad54f4346bebbf979": "Available",
+  "__meta__:listing:1fb6ee6379c5b6387d027443423c662f97c79c338dedc3ba22565ec22283334e": "Reserved",
+  "propstep:69bbd51ad54f4346bebbf979": "Reserved",
   "__meta__:listing:2e85c73ee3cc39dedc9bb6bc78ae1f67f7d02cdd441cdabb79bb4c3710a2e76b": "Reserved",
   "propstep:64c0ef458f8ff90a4a0dba34": "Reserved",
   "e4fe1baee9d4471fa176bdb596cac221": "Reserved",
@@ -1341,5 +1341,9 @@
   "__meta__:listing:3cbd1917f39bee381041faef3d8b46a52f252df70002b11b43a0e2efe75cdcfd": "Available",
   "propstep:686432735072bd262ca9a74a": "Available",
   "__meta__:listing:5998c37a3851cf7bf8293b5e0ab462092978238297d57007bad8db716d8dc7a7": "Available",
-  "propstep:696a3bacbf5b1f79d15a3b92": "Available"
+  "propstep:696a3bacbf5b1f79d15a3b92": "Available",
+  "__meta__:listing:9db08fa9b85ed2e17dabeb966ba788b07314b279e61cbecfda65cd458cbe1d7a": "Available",
+  "taurus:28895": "Available",
+  "__meta__:listing:7e5436e5cef6cb25fb0341425c27946b29eb870f15535ed02b7d3e36de281d9a": "Available",
+  "taurus:28894": "Available"
 }
