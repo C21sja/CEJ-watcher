@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
+    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,6 +675,7 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
+      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -851,8 +852,8 @@
   "propstep:64c0ef458f8ff90a4a0dba1c": "Available",
   "__meta__:listing:17f2489369b160f6ca738d444c5348d4a85f99e4bbfe29306edb31f2618edd75": "Available",
   "propstep:67f64fcbbba3eb36eeb1c1a4": "Available",
-  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Available",
-  "propstep:67f64fcbbba3eb36eeb1c19f": "Available",
+  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Reserved",
+  "propstep:67f64fcbbba3eb36eeb1c19f": "Reserved",
   "6e8ee0ee520748a28de22e22e084a720": "Reserved",
   "e6d4d57f8760241a03fba8965288f2af": "Reserved",
   "taurus:27296": "Reserved",
@@ -1027,8 +1028,8 @@
   "__meta__:listing:c2786a85189819ad5cf8902d3b08353cda0d7176ec971298e7f05b749725e584": "Reserved",
   "fe8dd164cad7df6cf02d982f4054559b": "Reserved",
   "6f4d9871be3e4f15874692b65148c1b1": "Reserved",
-  "__meta__:listing:2ac1cb8efbd71193cd195ac4dcf6e32b3582fd82936339ecc1bb38106c14efde": "Available",
-  "propstep:67f64fc9bba3eb36eeb1c161": "Available",
+  "__meta__:listing:2ac1cb8efbd71193cd195ac4dcf6e32b3582fd82936339ecc1bb38106c14efde": "Reserved",
+  "propstep:67f64fc9bba3eb36eeb1c161": "Reserved",
   "6697003a79874bf9b141ece0f7f460de": "Available",
   "09359a580f54433b88b5228f9272af94": "Reserved",
   "7b147688c184f2a77f760c28e2a33cbc": "Reserved",
