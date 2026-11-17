@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "54af85afcc9d994020d78a01c78a3e2d4d6b29bb231a88c3f40e749f724de452",
+    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -674,6 +674,7 @@
       "www.akutbolig.dk:rent:akutbolig.dk:313162",
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
+      "www.akutbolig.dk:rent:akutbolig.dk:649115",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -1302,8 +1303,8 @@
   "propstep:68d3eb2aa8541d5070e85c45": "Available",
   "__meta__:listing:def61f716f54fcf1e01554da282b04c2584344b15a28d4a979c268bfe23a76f9": "Available",
   "propstep:67f64fcabba3eb36eeb1c173": "Available",
-  "__meta__:listing:552a39c539d580ecdc657ff10d7f70a7313b4076e8ee8cfd248038b6dc87da57": "Reserved",
-  "propstep:696a3ba5bf5b1f79d15a3b22": "Reserved",
+  "__meta__:listing:552a39c539d580ecdc657ff10d7f70a7313b4076e8ee8cfd248038b6dc87da57": "Available",
+  "propstep:696a3ba5bf5b1f79d15a3b22": "Available",
   "__meta__:listing:f790d5ad017f7268cc0ff5a689f579f6c3daa6d7fa15b02722212937688d6699": "Available",
   "lejeboligmaegleren:18623": "Available",
   "__meta__:listing:9bda43b14271704654bcaecd87b653095a55868c140b5f86198cb5b64ecd76a6": "Available",
@@ -1345,5 +1346,11 @@
   "__meta__:listing:9db08fa9b85ed2e17dabeb966ba788b07314b279e61cbecfda65cd458cbe1d7a": "Available",
   "taurus:28895": "Available",
   "__meta__:listing:7e5436e5cef6cb25fb0341425c27946b29eb870f15535ed02b7d3e36de281d9a": "Available",
-  "taurus:28894": "Available"
+  "taurus:28894": "Available",
+  "__meta__:listing:4635e649342b77b164f053910501636ac8e74ed8b901bb991a905fcb5beceba9": "Available",
+  "propstep:6af36fe4cfb9ff02f2b0f162": "Available",
+  "__meta__:listing:8a3491b81285d17e2a70b3fe8fc0d89a71b64c68fa274ed87c9c183df16b9242": "Available",
+  "propstep:6afb0669d6aff0d1fe8a2898": "Available",
+  "__meta__:listing:dc5265bdea4d5e7a63dee1ef4173b470bd49ddf7186cd60872c476ef9a599ff9": "Available",
+  "propstep:66f13e3c87dbc925682703b6": "Available"
 }
