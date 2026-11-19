@@ -384,7 +384,7 @@
   "propstep:64c0ef458f8ff90a4a0dba0c": "Reserved",
   "propstep:64c0ef458f8ff90a4a0dba3a": "Reserved",
   "858a34aa8388b569cf6098ff80650058": "Reserved",
-  "propstep:69b1ca0549a01c62fc13c4cb": "Reserved",
+  "propstep:69b1ca0549a01c62fc13c4cb": "Available",
   "propstep:696a35dafabf8d5150f7b672": "Reserved",
   "propstep:696a3bfb7bfa6a3e19841b9f": "Reserved",
   "propstep:68edfc30bc56665b69b7cf53": "Reserved",
@@ -666,7 +666,7 @@
   "__meta__:baseline:Taurus": "complete",
   "__meta__:baseline:Brikk": "complete",
   "__meta__:readiness:readiness:kobenhavn-dk-origin-review": {
-    "signature": "c77499436f53ae37d4616f660f0cf12363023b913090bc1241b162c5c93b6ff8",
+    "signature": "d7c4c6622ca230126500c65427809edf795b6c27295ee2aa92ae6b5916fd21db",
     "registration_closed": false,
     "signals": [
       "home.dk:cooperative_sale:home.dk:1020001269",
@@ -675,7 +675,6 @@
       "www.akutbolig.dk:rent:akutbolig.dk:486255",
       "www.akutbolig.dk:rent:akutbolig.dk:501986",
       "www.akutbolig.dk:rent:akutbolig.dk:649115",
-      "www.akutbolig.dk:rent:akutbolig.dk:698198",
       "www.akutbolig.dk:rent:akutbolig.dk:702335",
       "www.brikk.dk:cooperative_sale:brikk.dk:redirect",
       "www.nybolig.dk:cooperative_sale:nybolig.dk:property.action"
@@ -852,8 +851,8 @@
   "propstep:64c0ef458f8ff90a4a0dba1c": "Available",
   "__meta__:listing:17f2489369b160f6ca738d444c5348d4a85f99e4bbfe29306edb31f2618edd75": "Available",
   "propstep:67f64fcbbba3eb36eeb1c1a4": "Available",
-  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Reserved",
-  "propstep:67f64fcbbba3eb36eeb1c19f": "Reserved",
+  "__meta__:listing:3648055c388f635e0bada46ed5c377db1818833d9555cf9954855975ca2625af": "Available",
+  "propstep:67f64fcbbba3eb36eeb1c19f": "Available",
   "6e8ee0ee520748a28de22e22e084a720": "Reserved",
   "e6d4d57f8760241a03fba8965288f2af": "Reserved",
   "taurus:27296": "Reserved",
@@ -1353,5 +1352,8 @@
   "__meta__:listing:8a3491b81285d17e2a70b3fe8fc0d89a71b64c68fa274ed87c9c183df16b9242": "Available",
   "propstep:6afb0669d6aff0d1fe8a2898": "Available",
   "__meta__:listing:dc5265bdea4d5e7a63dee1ef4173b470bd49ddf7186cd60872c476ef9a599ff9": "Available",
-  "propstep:66f13e3c87dbc925682703b6": "Available"
+  "propstep:66f13e3c87dbc925682703b6": "Available",
+  "__meta__:listing:abb9f409a7cd2bd90e29520de6bec08605f1f75183ffb3051271a4d5a581acd3": "Available",
+  "__meta__:listing:2b289b1c6bd3b4c483d8abc155a9760aaafb562a8fe2684237435097927cd2bc": "Available",
+  "propstep:69b1ca0849a01c62fc13c516": "Available"
 }
