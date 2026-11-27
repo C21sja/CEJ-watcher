@@ -592,7 +592,7 @@
   "propstep:68d3eb2ba8541d5070e85cc8": "Available",
   "propstep:68d3eb2ca8541d5070e85cd0": "Reserved",
   "propstep:68d3eb2ca8541d5070e85cd2": "Reserved",
-  "propstep:68d3eb2ca8541d5070e85cdc": "Reserved",
+  "propstep:68d3eb2ca8541d5070e85cdc": "Available",
   "propstep:68d3eb2ca8541d5070e85ce1": "Reserved",
   "propstep:68d3eb2ca8541d5070e85ce3": "Reserved",
   "propstep:68d3eb2ca8541d5070e85ced": "Reserved",
@@ -730,7 +730,7 @@
   "__meta__:listing:072007b17c7bedfe131bc4c8b828a137646c82de7fe06249d5978724f638b2ef": "Reserved",
   "__meta__:listing:b69399d3100c6d64fc9ae5d0167149ac1541cd28268e7c8cccbf27e250961513": "Reserved",
   "__meta__:listing:2876ec251556055944f9ed6595a6b8075a643a6bbb5dc3544397be6bdfa618ca": "Reserved",
-  "__meta__:listing:255de80fc3d8ed11947c22abc1a79b1214989c9d3a193b42be49acf23c4d32f4": "Reserved",
+  "__meta__:listing:255de80fc3d8ed11947c22abc1a79b1214989c9d3a193b42be49acf23c4d32f4": "Available",
   "__meta__:listing:d6f6d5b6ff92b7ee7feb1828dddfe1f746e9e4d1be0f3d68ebc2cdb0eda948e8": "Reserved",
   "__meta__:listing:2f9b1611ec343e0a4afd3b36fec7ed6afc8bec62613e953968f97f4ff7c073f2": "Reserved",
   "__meta__:listing:d171007fed4abed44c11694b5cdb815c075e227f69e92cec19f853605e7ca846": "Reserved",
@@ -1377,5 +1377,9 @@
   "__meta__:listing:186dc872b78b62a0e2afa970eb72132976e4306fc88d7947eafe1810340421af": "Available",
   "norhjem:/ejendomme/roskildevej/roskildevej-33-b-4-503/": "Available",
   "__meta__:listing:fbc0c2ce63986be561d2764cafcf9a3872fcf7da2ca393ad107589ccd2dcf9a5": "Available",
-  "propstep:6908baf37ff4b306307d04c4": "Available"
+  "propstep:6908baf37ff4b306307d04c4": "Available",
+  "__meta__:listing:59a8da57c17520cd9349d287e053b1ad04f233bb649aba41805c1904153c6f22": "Available",
+  "propstep:68d3eb28a8541d5070e85bbb": "Available",
+  "__meta__:listing:48f117175e7e094032a98981806ca02c1a4d7aeabf09bb0dc1cea1c37356b754": "Available",
+  "propstep:69b1ca06159c1b61ea34c3a1": "Available"
 }
